@@ -380,7 +380,7 @@ export const CreatePromptModal: React.FC<CreatePromptModalProps> = ({
         onClose={() => setOptimizationResult(prev => ({ ...prev, isOpen: false }))}
         originalPrompt={optimizationResult.original}
         optimizedPrompt={optimizationResult.optimized}
-        onApply={() => setFormData(prev => ({ ...prev, content: optimizationResult.optimized }))}
+        onApply={(content) => setFormData(prev => ({ ...prev, content: content }))}
       />
     </div>
   );

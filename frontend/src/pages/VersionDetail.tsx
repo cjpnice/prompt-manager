@@ -789,7 +789,7 @@ export const VersionDetail: React.FC = () => {
         onClose={() => setOptimizationResult(prev => ({ ...prev, isOpen: false }))}
         originalPrompt={optimizationResult.original}
         optimizedPrompt={optimizationResult.optimized}
-        onApply={() => setEditContent(optimizationResult.optimized)}
+        onApply={(content) => setEditContent(content)}
       />
     </div>
   );
