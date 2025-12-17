@@ -42,10 +42,16 @@ func main() {
 	tagHandler := handlers.NewTagHandler()
 	categoryHandler := handlers.NewCategoryHandler()
 	exportHandler := handlers.NewExportHandler()
+	settingsHandler := handlers.NewSettingsHandler()
 
 	// API路由组
 	api := r.Group("/api")
 	{
+		// 设置管理
+		api.GET("/settings", settingsHandler.GetSettings)
+		api.POST("/settings", settingsHandler.UpdateSettings)
+		api.POST("/optimize-prompt", settingsHandler.OptimizePrompt)
+
 		// 项目管理
 		api.GET("/projects", projectHandler.GetProjects)
 		api.POST("/projects", projectHandler.CreateProject)

@@ -56,6 +56,14 @@ type PromptHistory struct {
 	Prompt     Prompt    `json:"prompt,omitempty" gorm:"foreignKey:PromptID"`
 }
 
+type Setting struct {
+	Key         string    `json:"key" gorm:"primaryKey;type:varchar(50)"`
+	Value       string    `json:"value" gorm:"type:text"`
+	Description string    `json:"description" gorm:"type:varchar(255)"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
 func (p *Project) BeforeCreate(tx *gorm.DB) error {
 	if p.ID == "" {
 		p.ID = uuid.New().String()

@@ -30,6 +30,110 @@ class ApiService {
     return response.json();
   }
 
+  // 设置管理
+  async getSettings(): Promise<Record<string, string>> {
+    return this.request<Record<string, string>>('/settings');
+  }
+
+  async updateSettings(settings: Record<string, string>): Promise<void> {
+    return this.request<void>('/settings', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async optimizePrompt(prompt: string): Promise<{ optimized_prompt: string }> {
+    return this.request<{ optimized_prompt: string }>('/optimize-prompt', {
+      method: 'POST',
+      body: JSON.stringify({ prompt }),
+    });
+  }
+
+  optimizePromptStream(prompt: string, onData: (text: string) => void, onError: (error: string) => void): () => void {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    fetch(`${API_BASE_URL}/optimize-prompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt, stream: true }),
+      signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.statusText}`);
+        }
+
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('Response body is not readable');
+        }
+
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            // Trim whitespace to handle various newline formats
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+
+            if (trimmedLine.startsWith('data:')) {
+              try {
+                 // In standard SSE, it's "data: <content>\n\n"
+                 // Gin SSEvent sends: "event:message\ndata:<content>\n\n"
+                 
+                 // Get the data content part
+                 const data = trimmedLine.substring(5);
+                 
+                 let content = data;
+                 // Handle optional space after colon
+                 if (content.startsWith(' ')) {
+                   content = content.substring(1);
+                 }
+                 
+                 if (content) {
+                    // Try to parse as JSON first (new format)
+                    try {
+                      const json = JSON.parse(content);
+                      if (json && typeof json === 'object' && 'text' in json) {
+                        onData(json.text);
+                        continue;
+                      }
+                    } catch (e) {
+                      // Not JSON, fall back to raw text (legacy format)
+                    }
+                    
+                    // Fallback for non-JSON data (legacy or direct text)
+                    onData(content);
+                 }
+              } catch (e) {
+                console.error('Error parsing SSE data:', e);
+              }
+            } else if (trimmedLine.startsWith('event:error')) {
+               // Next line should be data: <error message>
+               // But we handle it in the loop
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') {
+          console.log('Stream aborted');
+        } else {
+          onError(err.message);
+        }
+      });
+
+    return () => controller.abort();
+  }
+
   // 项目管理
   async getProjects(search?: string): Promise<ApiResponse<Project[]>> {
     const params = new URLSearchParams();

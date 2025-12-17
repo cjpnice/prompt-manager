@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, FolderOpen, Tag as TagIcon, Upload, Folder, BookOpen, Sparkles, Command } from 'lucide-react';
+import { Search, Plus, FolderOpen, Tag as TagIcon, Upload, Folder, BookOpen, Sparkles, Command, Settings } from 'lucide-react';
 import { ProjectCard } from '../components/ProjectCard';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -139,6 +139,14 @@ export const Home: React.FC = () => {
             >
               <BookOpen className="w-4 h-4 mr-2" />
               集成教程
+            </button>
+            <div className="h-6 w-px bg-gray-200"></div>
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex items-center px-4 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              系统设置
             </button>
           </div>
           

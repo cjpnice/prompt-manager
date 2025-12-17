@@ -7,6 +7,7 @@ import TagManagement from './pages/TagManagement';
 import CategoryManagement from './pages/CategoryManagement';
 import ImportExport from './pages/ImportExport';
 import IntegrationTutorial from './pages/IntegrationTutorial';
+import Settings from './pages/Settings';
 import './index.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/version/:id" element={<VersionDetail />} />
           <Route path="/tags" element={<TagManagement />} />

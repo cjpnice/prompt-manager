@@ -50,6 +50,7 @@ func autoMigrate() error {
 		&models.Tag{},
 		&models.Category{},
 		&models.PromptHistory{},
+		&models.Setting{},
 	)
 }
 

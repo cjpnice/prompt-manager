@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, GitCommit, Calendar, FileText, RotateCcw, Copy, Eye, Code, GitCompare, Edit, Save, Trash2, Clock, ArrowRightLeft, ChevronDown, Grid, Tag as TagIcon } from 'lucide-react';
+import { ArrowLeft, GitCommit, Calendar, FileText, RotateCcw, Copy, Eye, Code, GitCompare, Edit, Save, Trash2, Clock, ArrowRightLeft, ChevronDown, Grid, Tag as TagIcon, Wand2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
 import remarkGfm from 'remark-gfm';
@@ -15,6 +15,7 @@ import { apiService } from '../services/api';
 import { Prompt, Tag } from '../types/models';
 import DiffViewer from '../components/DiffViewer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { OptimizedPromptDialog } from '../components/OptimizedPromptDialog';
 
 export const VersionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,6 +34,16 @@ export const VersionDetail: React.FC = () => {
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [bumpType, setBumpType] = useState<'major' | 'patch'>('patch');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizationResult, setOptimizationResult] = useState<{
+    original: string;
+    optimized: string;
+    isOpen: boolean;
+  }>({
+    original: '',
+    optimized: '',
+    isOpen: false,
+  });
 
   const markdownComponents = {
     h1: ({ node, ...props }: any) => (
@@ -205,6 +216,33 @@ export const VersionDetail: React.FC = () => {
       console.error('删除提示词失败:', error);
       alert('删除失败，请重试');
     }
+  };
+
+  const handleOptimize = async () => {
+    if (!editContent.trim()) return;
+    
+    setOptimizationResult({
+      original: editContent,
+      optimized: '',
+      isOpen: true,
+    });
+    setIsOptimizing(true);
+
+    apiService.optimizePromptStream(
+      editContent,
+      (text) => {
+        setOptimizationResult(prev => ({
+          ...prev,
+          optimized: prev.optimized + text
+        }));
+      },
+      (error) => {
+        console.error('Optimization failed:', error);
+        alert('优化失败，请检查系统设置中的 API Key 配置');
+        setIsOptimizing(false);
+      }
+    );
+    setIsOptimizing(false);
   };
 
   if (loading) {
@@ -603,8 +641,19 @@ export const VersionDetail: React.FC = () => {
                 </label>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-4 bg-gray-50/50">
                   <div className="flex flex-col h-[600px]">
-                    <div className="mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center">
-                      <Code className="w-3 h-3 mr-1" /> 源码编辑
+                    <div className="mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Code className="w-3 h-3 mr-1" /> 源码编辑
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOptimize}
+                        disabled={isOptimizing || !editContent.trim()}
+                        className="flex items-center text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
+                      >
+                        <Wand2 className="w-3 h-3 mr-1" />
+                        {isOptimizing ? '优化中...' : 'AI 优化'}
+                      </button>
                     </div>
                     <textarea
                       rows={20}
@@ -734,6 +783,14 @@ export const VersionDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      <OptimizedPromptDialog
+        isOpen={optimizationResult.isOpen}
+        onClose={() => setOptimizationResult(prev => ({ ...prev, isOpen: false }))}
+        originalPrompt={optimizationResult.original}
+        optimizedPrompt={optimizationResult.optimized}
+        onApply={() => setEditContent(optimizationResult.optimized)}
+      />
     </div>
   );
 };
