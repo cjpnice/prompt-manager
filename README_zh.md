@@ -1,5 +1,7 @@
 # Prompt Manager (提示词管理器)
 
+[English](./README.md) | **中文文档**
+
 Prompt Manager 是一个全栈应用程序，旨在帮助开发者和提示词工程师高效地管理、版本化和组织 LLM（大型语言模型）提示词。它提供了一个集中式的界面，用于创建项目、管理提示词版本、对比变更，并通过标签和分类来组织提示词。
 ![alt text](image.png)
 ![alt text](image-1.png)
