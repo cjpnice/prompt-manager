@@ -3,6 +3,7 @@
 Prompt Manager is a full-stack application designed to help developers and prompt engineers manage, version, and organize their LLM prompts efficiently. It provides a centralized interface for creating projects, managing prompt versions, comparing changes, and organizing prompts with tags and categories.
 ![alt text](image.png)
 ![alt text](image-1.png)
+![alt text](image-2.png)
 
 ## Features
 
