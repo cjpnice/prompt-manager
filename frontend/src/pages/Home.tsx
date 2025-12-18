@@ -78,8 +78,8 @@ export const Home: React.FC = () => {
               Prompt Manager
             </h1>
             <p className="text-lg text-indigo-200 mb-10 leading-relaxed">
-              集中化管理、版本控制与团队协作，让每一个提示词都发挥最大价值。
-              支持多版本对比、标签分类与快速检索。
+              集中化管理、版本控制与智能优化，让每一个提示词都发挥最大价值。
+              支持多版本对比、在线测试、AI 辅助优化与标签分类。
             </p>
 
             {/* 搜索框 */}
@@ -94,9 +94,7 @@ export const Home: React.FC = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-3 text-gray-900 placeholder-gray-400 bg-transparent border-none focus:ring-0 text-lg"
                 />
-                <div className="hidden md:flex items-center text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 mr-2 bg-gray-50">
-                  <Command className="w-3 h-3 mr-1" /> K
-                </div>
+
               </div>
             </div>
           </div>
@@ -251,7 +249,7 @@ export const Home: React.FC = () => {
       
       {/* Footer */}
       <footer className="mt-auto py-8 text-center text-gray-400 text-sm">
-        <p>© 2024 Prompt Manager. All rights reserved.</p>
+        <p>© 2025 Prompt Manager. All rights reserved.</p>
       </footer>
     </div>
   );
