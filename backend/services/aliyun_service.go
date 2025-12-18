@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 )
+
 const (
 	DefaultSystemPrompt = `
 	# 提示词优化专家系统提示词
@@ -79,11 +80,9 @@ const (
 [简要分析原提示词的优缺点]
 
 **✨ 优化后的提示词**
-```
-[完整的优化后提示词]
-```
-
-**💡 改进要点**
+` +
+		"```\n[完整的优化后提示词]\n```" +
+		`**💡 改进要点**
 [列出3-5个关键改进点及理由]
 
 **🎯 使用建议**
@@ -141,17 +140,17 @@ func normalizeAPIURL(url string) string {
 	if url == "" {
 		return "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 	}
-	
+
 	// If the URL already ends with /chat/completions, use it as is
 	if strings.HasSuffix(url, "/chat/completions") {
 		return url
 	}
-	
+
 	// If it ends with slash, just append chat/completions
 	if strings.HasSuffix(url, "/") {
 		return url + "chat/completions"
 	}
-	
+
 	// Otherwise append /chat/completions
 	return url + "/chat/completions"
 }

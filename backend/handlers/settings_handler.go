@@ -22,7 +22,7 @@ func (h *SettingsHandler) GetSettings(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	
+
 	settingsMap := make(map[string]string)
 	for _, s := range settings {
 		settingsMap[s.Key] = s.Value
@@ -93,11 +93,7 @@ func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 		return
 	}
 
-	// If system prompt is not configured, use a hardcoded default or empty
 	systemPrompt := systemPromptSetting.Value
-	if systemPrompt == "" {
-		systemPrompt = "You are a helpful assistant that helps to optimize prompts. Please improve the following prompt to make it more effective."
-	}
 
 	model := modelSetting.Value
 	if model == "" {
@@ -118,7 +114,7 @@ func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 			c.Writer.Flush()
 			return nil
 		})
-		
+
 		if err != nil {
 			// If error happens mid-stream, we can't really change the status code now,
 			// but we can send an error event.
