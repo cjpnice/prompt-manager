@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle, Calculator } from 'lucide-react';
 import { apiService } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
+import { encode } from 'gpt-tokenizer';
 
 interface Message {
   id: string;
@@ -23,6 +24,40 @@ export const TestPrompt: React.FC = () => {
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [streamAbort, setStreamAbort] = useState<(() => void) | null>(null);
+  const [tokenCount, setTokenCount] = useState(0);
+  const [cost, setCost] = useState(0);
+  const [showCostSettings, setShowCostSettings] = useState(false);
+  const [inputPrice, setInputPrice] = useState(0.002);
+  const [outputPrice, setOutputPrice] = useState(0.006);
+
+  useEffect(() => {
+    calculateTokens();
+  }, [messages, response, inputPrice, outputPrice]);
+
+  const calculateTokens = () => {
+    try {
+      let totalTokens = 0;
+      // Calculate input tokens
+      messages.forEach(msg => {
+        const tokens = encode(msg.content || '');
+        totalTokens += tokens.length;
+      });
+      
+      const inputTokens = totalTokens;
+      
+      // Calculate output tokens
+      const outputTokens = encode(response || '').length;
+      totalTokens += outputTokens;
+
+      setTokenCount(totalTokens);
+      
+      // Calculate estimated cost
+      const estimatedCost = (inputTokens / 1000 * inputPrice) + (outputTokens / 1000 * outputPrice);
+      setCost(estimatedCost);
+    } catch (e) {
+      console.error('Token calculation error:', e);
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -118,6 +153,64 @@ export const TestPrompt: React.FC = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <h1 className="text-xl font-bold text-gray-900">提示词测试</h1>
+            </div>
+            <div className="relative">
+              <button 
+                onClick={() => setShowCostSettings(!showCostSettings)}
+                className="flex flex-col items-end mr-4 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+                title="点击设置模型单价"
+              >
+                <div className="flex items-center text-xs text-gray-500 space-x-2">
+                  <Calculator className="w-3 h-3" />
+                  <span>Tokens: {tokenCount}</span>
+                </div>
+                <div className="text-xs font-medium text-gray-700">
+                  ≈ ¥{cost.toFixed(5)}
+                </div>
+              </button>
+              
+              {showCostSettings && (
+                <div className="absolute top-full right-4 mt-2 p-4 bg-white rounded-xl shadow-xl border border-gray-100 w-64 z-20">
+                  <h3 className="text-sm font-bold text-gray-900 mb-3">模型价格设置 (每1k tokens)</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">输入价格 (Input)</label>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
+                        <input
+                          type="number"
+                          step="0.001"
+                          value={inputPrice}
+                          onChange={(e) => setInputPrice(parseFloat(e.target.value) || 0)}
+                          className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">输出价格 (Output)</label>
+                      <div className="relative">
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
+                        <input
+                          type="number"
+                          step="0.001"
+                          value={outputPrice}
+                          onChange={(e) => setOutputPrice(parseFloat(e.target.value) || 0)}
+                          className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
+                    点击外部关闭设置
+                  </div>
+                </div>
+              )}
+              {showCostSettings && (
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setShowCostSettings(false)}
+                />
+              )}
             </div>
             <button
               onClick={handleTest}
