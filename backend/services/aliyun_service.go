@@ -156,12 +156,6 @@ func normalizeAPIURL(url string) string {
 }
 
 func CallAliyun(apiKey, apiURL, model, systemPrompt, userPrompt string) (string, error) {
-	apiURL = normalizeAPIURL(apiURL)
-
-	if model == "" {
-		model = "qwen-turbo"
-	}
-
 	messages := []OpenAIMessage{}
 	if systemPrompt != "" {
 		messages = append(messages, OpenAIMessage{Role: "system", Content: systemPrompt})
@@ -169,6 +163,16 @@ func CallAliyun(apiKey, apiURL, model, systemPrompt, userPrompt string) (string,
 		messages = append(messages, OpenAIMessage{Role: "system", Content: DefaultSystemPrompt})
 	}
 	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt})
+
+	return CallAliyunChat(apiKey, apiURL, model, messages)
+}
+
+func CallAliyunChat(apiKey, apiURL, model string, messages []OpenAIMessage) (string, error) {
+	apiURL = normalizeAPIURL(apiURL)
+
+	if model == "" {
+		model = "qwen-turbo"
+	}
 
 	reqBody := OpenAIRequest{
 		Model:    model,
@@ -218,12 +222,6 @@ func CallAliyun(apiKey, apiURL, model, systemPrompt, userPrompt string) (string,
 }
 
 func CallAliyunStream(apiKey, apiURL, model, systemPrompt, userPrompt string, callback func(string) error) error {
-	apiURL = normalizeAPIURL(apiURL)
-
-	if model == "" {
-		model = "qwen-turbo"
-	}
-
 	messages := []OpenAIMessage{}
 	if systemPrompt != "" {
 		messages = append(messages, OpenAIMessage{Role: "system", Content: systemPrompt})
@@ -231,6 +229,16 @@ func CallAliyunStream(apiKey, apiURL, model, systemPrompt, userPrompt string, ca
 		messages = append(messages, OpenAIMessage{Role: "system", Content: DefaultSystemPrompt})
 	}
 	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt})
+
+	return CallAliyunChatStream(apiKey, apiURL, model, messages, callback)
+}
+
+func CallAliyunChatStream(apiKey, apiURL, model string, messages []OpenAIMessage, callback func(string) error) error {
+	apiURL = normalizeAPIURL(apiURL)
+
+	if model == "" {
+		model = "qwen-turbo"
+	}
 
 	reqBody := OpenAIRequest{
 		Model:    model,

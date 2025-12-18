@@ -351,6 +351,7 @@ export const ProjectDetail: React.FC = () => {
                           key={prompt.id}
                           prompt={prompt}
                           onClick={() => handlePromptClick(prompt)}
+                          onTest={() => navigate(`/test-prompt/${prompt.id}`)}
                           onDelete={() => {
                             setConfirmDialog({
                               isOpen: true,

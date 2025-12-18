@@ -1,14 +1,15 @@
 import React from 'react';
 import { Prompt } from '../types/models';
-import { Calendar, Tag as TagIcon, FileText, GitCommit, Trash2 } from 'lucide-react';
+import { Calendar, Tag as TagIcon, FileText, GitCommit, Trash2, Play } from 'lucide-react';
 
 interface PromptCardProps {
   prompt: Prompt;
   onClick: () => void;
   onDelete?: () => void;
+  onTest?: () => void;
 }
 
-export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onClick, onDelete }) => {
+export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onClick, onDelete, onTest }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN');
   };
@@ -46,6 +47,15 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onClick, onDelet
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {onTest && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onTest(); }}
+              className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
+              title="测试提示词"
+            >
+              <Play className="w-4 h-4" />
+            </button>
+          )}
           {onDelete && (
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(); }}

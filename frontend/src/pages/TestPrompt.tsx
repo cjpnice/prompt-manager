@@ -1,0 +1,276 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle } from 'lucide-react';
+import { apiService } from '../services/api';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+
+interface Message {
+  id: string;
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export const TestPrompt: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 'system-1', role: 'system', content: '' },
+    { id: 'user-1', role: 'user', content: '' }
+  ]);
+  const [response, setResponse] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [streamAbort, setStreamAbort] = useState<(() => void) | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      loadPrompt(id);
+    }
+  }, [id]);
+
+  const loadPrompt = async (promptId: string) => {
+    try {
+      const prompt = await apiService.getPrompt(promptId);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        if (newMessages.length > 0 && newMessages[0].role === 'system') {
+          newMessages[0].content = prompt.content;
+        } else {
+            newMessages.unshift({ id: 'system-' + Date.now(), role: 'system', content: prompt.content });
+        }
+        return newMessages;
+      });
+    } catch (error) {
+      console.error('Failed to load prompt:', error);
+    }
+  };
+
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const items = Array.from(messages);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    setMessages(items);
+  };
+
+  const updateMessage = (id: string, content: string) => {
+    setMessages(messages.map(m => m.id === id ? { ...m, content } : m));
+  };
+
+  const addMessage = (role: 'user' | 'assistant') => {
+    setMessages([...messages, { id: role + '-' + Date.now(), role, content: '' }]);
+  };
+
+  const removeMessage = (id: string) => {
+    setMessages(messages.filter(m => m.id !== id));
+  };
+
+  const handleTest = async () => {
+    if (loading) {
+        // Stop generation
+        if (streamAbort) {
+            streamAbort();
+            setStreamAbort(null);
+        }
+        setLoading(false);
+        return;
+    }
+
+    setLoading(true);
+    setResponse('');
+    
+    const apiMessages = messages.map(({ role, content }) => ({ role, content }));
+    
+    const abort = apiService.testPromptStream(
+      apiMessages,
+      (text) => {
+        setResponse(prev => prev + text);
+      },
+      (error) => {
+        console.error('Stream error:', error);
+        setLoading(false);
+        setStreamAbort(null);
+        alert('生成出错: ' + error);
+      },
+      () => {
+          setLoading(false);
+          setStreamAbort(null);
+      }
+    );
+    
+    setStreamAbort(() => abort);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate(-1)}
+                className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-xl font-bold text-gray-900">提示词测试</h1>
+            </div>
+            <button
+              onClick={handleTest}
+              className={`px-4 py-2 rounded-lg flex items-center font-medium transition-all ${
+                loading 
+                  ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' 
+                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow-md'
+              }`}
+            >
+              {loading ? (
+                <>
+                  <StopCircle className="w-4 h-4 mr-2" />
+                  停止生成
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  开始测试
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-140px)]">
+          {/* Left Column: Chat Config */}
+          <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+              <h2 className="font-semibold text-gray-700">对话消息配置</h2>
+              <div className="space-x-2">
+                <button 
+                    onClick={() => addMessage('user')}
+                    className="text-xs px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-50 text-gray-600"
+                >
+                    + 用户
+                </button>
+                <button 
+                    onClick={() => addMessage('assistant')}
+                    className="text-xs px-2 py-1 bg-white border border-gray-200 rounded hover:bg-gray-50 text-gray-600"
+                >
+                    + 助手
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="messages">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-4"
+                    >
+                      {messages.map((msg, index) => (
+                        <Draggable key={msg.id} draggableId={msg.id} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`bg-white border rounded-lg p-3 transition-shadow ${
+                                snapshot.isDragging ? 'shadow-lg border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div {...provided.dragHandleProps} className="cursor-grab text-gray-400 hover:text-gray-600">
+                                    <GripVertical className="w-4 h-4" />
+                                  </div>
+                                  <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded ${
+                                    msg.role === 'system' ? 'bg-purple-100 text-purple-700' :
+                                    msg.role === 'user' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {msg.role}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() => removeMessage(msg.id)}
+                                  className="text-gray-400 hover:text-red-500 transition-colors"
+                                  title="删除消息"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <textarea
+                                value={msg.content}
+                                onChange={(e) => updateMessage(msg.id, e.target.value)}
+                                placeholder={`输入${msg.role === 'system' ? '系统提示词' : msg.role === 'user' ? '用户消息' : '助手消息'}...`}
+                                className="w-full text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 min-h-[80px] resize-y"
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </div>
+          </div>
+
+          {/* Right Column: Response */}
+          <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="font-semibold text-gray-700">模型响应</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-white">
+              {response ? (
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={{
+                        code({node, inline, className, children, ...props}: any) {
+                            return !inline ? (
+                                <pre className="bg-gray-800 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+                                    <code {...props} className={className}>
+                                        {children}
+                                    </code>
+                                </pre>
+                            ) : (
+                                <code {...props} className="bg-gray-100 text-red-500 px-1 py-0.5 rounded text-sm font-mono">
+                                    {children}
+                                </code>
+                            )
+                        }
+                    }}
+                  >
+                    {response}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                  {loading ? (
+                    <div className="flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+                        <p>正在生成响应...</p>
+                    </div>
+                  ) : (
+                    <>
+                      <Play className="w-12 h-12 mb-2 opacity-20" />
+                      <p>点击"开始测试"查看效果</p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

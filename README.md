@@ -6,6 +6,7 @@ Prompt Manager is a full-stack application designed to help developers and promp
 ![alt text](image.png)
 ![alt text](image-1.png)
 ![alt text](image-2.png)
+![alt text](image-3.png)
 
 ## Features
 
@@ -13,6 +14,7 @@ Prompt Manager is a full-stack application designed to help developers and promp
 - **Prompt Versioning**: automatically track changes to your prompts with version control.
 - **Diff Viewer**: Visually compare different versions of a prompt to see what changed.
 - **AI Optimization**: Built-in AI optimization feature, integrating with Aliyun Bailian or OpenAI-compatible large models to provide prompt optimization suggestions.
+- **Prompt Testing**: Built-in playground to test prompts with custom user messages, drag-and-drop reordering, and real-time streaming responses.
 - **Streaming Response**: Optimization results use streaming output (Server-Sent Events), supporting real-time preview and typewriter effect.
 - **Visual Editing**: Optimized prompts support secondary editing, previewing, and one-click copy/apply in a modal window.
 - **Rollback Capability**: Easily revert to previous versions of a prompt.
@@ -122,6 +124,7 @@ The backend exposes a RESTful API at `http://localhost:8080/api`. Key endpoints 
 - `PUT /api/prompts/:id`: Update a prompt (creates a new version)
 - `GET /api/prompts/:id/diff/:target_id`: Compare two prompt versions
 - `POST /api/optimize-prompt`: Call LLM for prompt optimization (supports streaming)
+- `POST /api/test-prompt`: Test prompt with conversation history (supports streaming)
 - `GET /api/settings`: Get system configuration
 - `POST /api/settings`: Update system configuration
 

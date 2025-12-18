@@ -6,6 +6,7 @@ Prompt Manager 是一个全栈应用程序，旨在帮助开发者和提示词�
 ![alt text](image.png)
 ![alt text](image-1.png)
 ![alt text](image-2.png)
+![alt text](image-3.png)
 
 ## 功能特性
 
@@ -13,6 +14,7 @@ Prompt Manager 是一个全栈应用程序，旨在帮助开发者和提示词�
 - **提示词版本控制**：自动追踪提示词的变更，实现版本控制。
 - **差异对比 (Diff Viewer)**：可视化对比不同版本的提示词，清晰查看变更内容。
 - **AI 智能优化**：内置 AI 优化功能，对接阿里云百炼或兼容 OpenAI 协议的大模型，提供提示词优化建议。
+- **提示词测试 (Playground)**：内置测试环境，支持自定义对话消息、拖拽排序和实时流式响应，方便验证提示词效果。
 - **流式实时响应**：优化结果采用流式输出（Server-Sent Events），支持实时预览和打字机效果。
 - **可视化编辑**：优化后的提示词支持在弹窗中进行二次编辑、预览和一键复制/应用。
 - **回滚能力**：轻松将提示词恢复到之前的版本。
@@ -123,6 +125,7 @@ npm run dev
 - `PUT /api/prompts/:id`: 更新提示词（创建新版本）
 - `GET /api/prompts/:id/diff/:target_id`: 对比两个提示词版本
 - `POST /api/optimize-prompt`: 调用大模型进行提示词优化（支持流式）
+- `POST /api/test-prompt`: 测试提示词对话（支持流式）
 - `GET /api/settings`: 获取系统配置
 - `POST /api/settings`: 更新系统配置
 

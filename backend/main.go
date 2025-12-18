@@ -87,6 +87,9 @@ func main() {
 		// 导入导出
 		api.POST("/export", exportHandler.ExportData)
 		api.POST("/import", exportHandler.ImportData)
+
+		// 测试提示词
+		api.POST("/test-prompt", promptHandler.TestPrompt)
 	}
 
 	// 健康检查

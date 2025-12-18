@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"prompt-manager/database"
@@ -501,4 +502,65 @@ func (h *PromptHandler) GetSDKPrompt(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"content": prompt.Content,
 	})
+}
+
+// TestPrompt 测试提示词
+func (h *PromptHandler) TestPrompt(c *gin.Context) {
+	type TestPromptRequest struct {
+		Messages []services.OpenAIMessage `json:"messages"`
+		Stream   bool                     `json:"stream"`
+	}
+	var req TestPromptRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get settings
+	var apiKeySetting models.Setting
+	database.DB.Where("`key` = ?", "aliyun_api_key").First(&apiKeySetting)
+
+	var apiURLSetting models.Setting
+	database.DB.Where("`key` = ?", "aliyun_api_url").First(&apiURLSetting)
+
+	var modelSetting models.Setting
+	database.DB.Where("`key` = ?", "aliyun_model").First(&modelSetting)
+
+	if apiKeySetting.Value == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Aliyun API Key not configured"})
+		return
+	}
+
+	model := modelSetting.Value
+	if model == "" {
+		model = "qwen-turbo"
+	}
+
+	if req.Stream {
+		c.Header("Content-Type", "text/event-stream")
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Connection", "keep-alive")
+		c.Header("Transfer-Encoding", "chunked")
+
+		err := services.CallAliyunChatStream(apiKeySetting.Value, apiURLSetting.Value, model, req.Messages, func(text string) error {
+			data := map[string]string{"text": text}
+			jsonData, _ := json.Marshal(data)
+			c.SSEvent("message", string(jsonData))
+			c.Writer.Flush()
+			return nil
+		})
+
+		if err != nil {
+			c.SSEvent("error", err.Error())
+		}
+		return
+	}
+
+	response, err := services.CallAliyunChat(apiKeySetting.Value, apiURLSetting.Value, model, req.Messages)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"response": response})
 }
