@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle, Calculator, Copy, Settings, X, Check } from 'lucide-react';
+import { ArrowLeft, Trash2, Play, GripVertical, StopCircle, Calculator, Copy, Settings, X, Check } from 'lucide-react';
 import { apiService } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -48,18 +48,42 @@ export const TestPrompt: React.FC = () => {
     maxTokens: 2000
   });
   const [copied, setCopied] = useState(false);
+  const [variablePrefix, setVariablePrefix] = useState('{{');
+  const [variableSuffix, setVariableSuffix] = useState('}}');
+
+  // Escape regex special characters
+  const escapeRegExp = (string: string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  };
 
   useEffect(() => {
     // Extract variables from messages
     const vars = new Set<string>();
-    messages.forEach(msg => {
-      const matches = msg.content.match(/\{\{([^}]+)\}\}/g);
-      if (matches) {
-        matches.forEach(m => vars.add(m.slice(2, -2).trim()));
-      }
-    });
-    setVariables(Array.from(vars));
-  }, [messages]);
+    if (!variablePrefix || !variableSuffix) return;
+
+    try {
+        const escapedPrefix = escapeRegExp(variablePrefix);
+        const escapedSuffix = escapeRegExp(variableSuffix);
+        const regex = new RegExp(`${escapedPrefix}\\s*(.+?)\\s*${escapedSuffix}`, 'g');
+
+        messages.forEach(msg => {
+            const matches = msg.content.match(regex);
+            if (matches) {
+                // match returns full match, we need to extract groups manually or use exec
+                let match;
+                const globalRegex = new RegExp(`${escapedPrefix}\\s*(.+?)\\s*${escapedSuffix}`, 'g');
+                while ((match = globalRegex.exec(msg.content)) !== null) {
+                    if (match[1]) {
+                        vars.add(match[1].trim());
+                    }
+                }
+            }
+        });
+        setVariables(Array.from(vars));
+    } catch (e) {
+        console.error('Regex error:', e);
+    }
+  }, [messages, variablePrefix, variableSuffix]);
 
   useEffect(() => {
     calculateTokens();
@@ -163,10 +187,19 @@ export const TestPrompt: React.FC = () => {
     // Replace variables
     const apiMessages = messages.map(({ role, content }) => {
       let newContent = content;
-      variables.forEach(v => {
-        const regex = new RegExp(`\\{\\{\\s*${v}\\s*\\}\\}`, 'g');
-        newContent = newContent.replace(regex, variableValues[v] || '');
-      });
+      if (variablePrefix && variableSuffix) {
+          const escapedPrefix = escapeRegExp(variablePrefix);
+          const escapedSuffix = escapeRegExp(variableSuffix);
+          
+          variables.forEach(v => {
+            try {
+                const regex = new RegExp(`${escapedPrefix}\\s*${escapeRegExp(v)}\\s*${escapedSuffix}`, 'g');
+                newContent = newContent.replace(regex, variableValues[v] || '');
+            } catch (e) {
+                console.error('Replace error:', e);
+            }
+          });
+      }
       return { role, content: newContent };
     });
     
@@ -413,26 +446,54 @@ export const TestPrompt: React.FC = () => {
             </div>
             
             {/* Variables Section */}
-            {variables.length > 0 && (
+            {(variables.length > 0 || true) && (
                 <div className="p-4 border-b border-gray-100 bg-yellow-50/30">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-2"></span>
-                        变量设置
-                    </h3>
-                    <div className="grid grid-cols-1 gap-3">
-                        {variables.map(v => (
-                            <div key={v} className="flex items-center space-x-2">
-                                <label className="text-xs font-medium text-gray-600 min-w-[60px] text-right truncate" title={v}>{v}:</label>
-                                <input
-                                    type="text"
-                                    value={variableValues[v] || ''}
-                                    onChange={(e) => setVariableValues({...variableValues, [v]: e.target.value})}
-                                    placeholder={`输入 {{${v}}} 的值...`}
-                                    className="flex-1 text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5"
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-semibold text-gray-700 flex items-center">
+                            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-2"></span>
+                            变量设置
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                            <span className="text-xs text-gray-500">变量格式:</span>
+                            <div className="flex items-center space-x-1">
+                                <input 
+                                    type="text" 
+                                    value={variablePrefix}
+                                    onChange={(e) => setVariablePrefix(e.target.value)}
+                                    className="w-12 text-xs border-gray-200 rounded py-0.5 px-1 text-center focus:ring-yellow-400 focus:border-yellow-400"
+                                    placeholder="前缀"
+                                />
+                                <span className="text-xs text-gray-400">变量名</span>
+                                <input 
+                                    type="text" 
+                                    value={variableSuffix}
+                                    onChange={(e) => setVariableSuffix(e.target.value)}
+                                    className="w-12 text-xs border-gray-200 rounded py-0.5 px-1 text-center focus:ring-yellow-400 focus:border-yellow-400"
+                                    placeholder="后缀"
                                 />
                             </div>
-                        ))}
+                        </div>
                     </div>
+                    {variables.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3">
+                            {variables.map(v => (
+                                <div key={v} className="flex items-center space-x-2">
+                                    <label className="text-xs font-medium text-gray-600 min-w-[60px] text-right truncate" title={v}>{v}:</label>
+                                    <input
+                                        type="text"
+                                        value={variableValues[v] || ''}
+                                        onChange={(e) => setVariableValues({...variableValues, [v]: e.target.value})}
+                                        placeholder={`输入 ${variablePrefix}${v}${variableSuffix} 的值...`}
+                                        className="flex-1 text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-xs text-gray-400 text-center py-2">
+                            未检测到变量。尝试在提示词中使用 {variablePrefix}变量名{variableSuffix}
+                        </div>
+                    )}
                 </div>
             )}
             
