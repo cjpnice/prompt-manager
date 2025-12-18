@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, GitCommit, Calendar, FileText, RotateCcw, Copy, Eye, Code, GitCompare, Edit, Save, Trash2, Clock, ArrowRightLeft, ChevronDown, Grid, Tag as TagIcon, Wand2 } from 'lucide-react';
+import { ArrowLeft, GitCommit, Calendar, FileText, RotateCcw, Copy, Eye, Code, GitCompare, Edit, Save, Trash2, Clock, ArrowRightLeft, ChevronDown, Grid, Tag as TagIcon, Wand2, Play } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import clsx from 'clsx';
 import remarkGfm from 'remark-gfm';
@@ -326,6 +326,13 @@ export const VersionDetail: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate(`/test-prompt/${prompt.id}`)}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center shadow-md hover:shadow-lg border border-transparent"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                测试
+              </button>
               <button
                 onClick={() => setIsEditing((prev) => !prev)}
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors flex items-center backdrop-blur-sm border border-white/10"
