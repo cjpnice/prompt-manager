@@ -113,9 +113,19 @@ type OpenAIMessage struct {
 }
 
 type OpenAIRequest struct {
-	Model    string          `json:"model"`
-	Messages []OpenAIMessage `json:"messages"`
-	Stream   bool            `json:"stream"`
+	Model       string          `json:"model"`
+	Messages    []OpenAIMessage `json:"messages"`
+	Stream      bool            `json:"stream"`
+	Temperature *float64        `json:"temperature,omitempty"`
+	TopP        *float64        `json:"top_p,omitempty"`
+	MaxTokens   int             `json:"max_tokens,omitempty"`
+}
+
+type ChatOptions struct {
+	Model       string
+	Temperature *float64
+	TopP        *float64
+	MaxTokens   int
 }
 
 type OpenAIResponse struct {
@@ -164,20 +174,23 @@ func CallAliyun(apiKey, apiURL, model, systemPrompt, userPrompt string) (string,
 	}
 	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt})
 
-	return CallAliyunChat(apiKey, apiURL, model, messages)
+	return CallAliyunChat(apiKey, apiURL, ChatOptions{Model: model}, messages)
 }
 
-func CallAliyunChat(apiKey, apiURL, model string, messages []OpenAIMessage) (string, error) {
+func CallAliyunChat(apiKey, apiURL string, options ChatOptions, messages []OpenAIMessage) (string, error) {
 	apiURL = normalizeAPIURL(apiURL)
 
-	if model == "" {
-		model = "qwen-turbo"
+	if options.Model == "" {
+		options.Model = "qwen-turbo"
 	}
 
 	reqBody := OpenAIRequest{
-		Model:    model,
-		Messages: messages,
-		Stream:   false,
+		Model:       options.Model,
+		Messages:    messages,
+		Stream:      false,
+		Temperature: options.Temperature,
+		TopP:        options.TopP,
+		MaxTokens:   options.MaxTokens,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -230,20 +243,23 @@ func CallAliyunStream(apiKey, apiURL, model, systemPrompt, userPrompt string, ca
 	}
 	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt})
 
-	return CallAliyunChatStream(apiKey, apiURL, model, messages, callback)
+	return CallAliyunChatStream(apiKey, apiURL, ChatOptions{Model: model}, messages, callback)
 }
 
-func CallAliyunChatStream(apiKey, apiURL, model string, messages []OpenAIMessage, callback func(string) error) error {
+func CallAliyunChatStream(apiKey, apiURL string, options ChatOptions, messages []OpenAIMessage, callback func(string) error) error {
 	apiURL = normalizeAPIURL(apiURL)
 
-	if model == "" {
-		model = "qwen-turbo"
+	if options.Model == "" {
+		options.Model = "qwen-turbo"
 	}
 
 	reqBody := OpenAIRequest{
-		Model:    model,
-		Messages: messages,
-		Stream:   true,
+		Model:       options.Model,
+		Messages:    messages,
+		Stream:      true,
+		Temperature: options.Temperature,
+		TopP:        options.TopP,
+		MaxTokens:   options.MaxTokens,
 	}
 
 	jsonData, err := json.Marshal(reqBody)

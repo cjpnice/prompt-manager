@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle, Calculator } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Play, GripVertical, StopCircle, Calculator, Copy, Settings, X, Check } from 'lucide-react';
 import { apiService } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -12,6 +12,13 @@ interface Message {
   id: string;
   role: 'system' | 'user' | 'assistant';
   content: string;
+}
+
+interface ModelSettings {
+  model: string;
+  temperature: number;
+  topP: number;
+  maxTokens: number;
 }
 
 export const TestPrompt: React.FC = () => {
@@ -29,6 +36,30 @@ export const TestPrompt: React.FC = () => {
   const [showCostSettings, setShowCostSettings] = useState(false);
   const [inputPrice, setInputPrice] = useState(0.002);
   const [outputPrice, setOutputPrice] = useState(0.006);
+  
+  // New features state
+  const [variables, setVariables] = useState<string[]>([]);
+  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
+  const [showModelSettings, setShowModelSettings] = useState(false);
+  const [modelSettings, setModelSettings] = useState<ModelSettings>({
+    model: 'qwen-turbo',
+    temperature: 0.7,
+    topP: 0.8,
+    maxTokens: 2000
+  });
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    // Extract variables from messages
+    const vars = new Set<string>();
+    messages.forEach(msg => {
+      const matches = msg.content.match(/\{\{([^}]+)\}\}/g);
+      if (matches) {
+        matches.forEach(m => vars.add(m.slice(2, -2).trim()));
+      }
+    });
+    setVariables(Array.from(vars));
+  }, [messages]);
 
   useEffect(() => {
     calculateTokens();
@@ -104,6 +135,17 @@ export const TestPrompt: React.FC = () => {
     setMessages(messages.filter(m => m.id !== id));
   };
 
+  const handleCopy = async () => {
+    if (!response) return;
+    try {
+      await navigator.clipboard.writeText(response);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   const handleTest = async () => {
     if (loading) {
         // Stop generation
@@ -118,8 +160,17 @@ export const TestPrompt: React.FC = () => {
     setLoading(true);
     setResponse('');
     
-    const apiMessages = messages.map(({ role, content }) => ({ role, content }));
+    // Replace variables
+    const apiMessages = messages.map(({ role, content }) => {
+      let newContent = content;
+      variables.forEach(v => {
+        const regex = new RegExp(`\\{\\{\\s*${v}\\s*\\}\\}`, 'g');
+        newContent = newContent.replace(regex, variableValues[v] || '');
+      });
+      return { role, content: newContent };
+    });
     
+    // Prepare request options (passing model settings if supported by API service wrapper)
     const abort = apiService.testPromptStream(
       apiMessages,
       (text) => {
@@ -134,7 +185,8 @@ export const TestPrompt: React.FC = () => {
       () => {
           setLoading(false);
           setStreamAbort(null);
-      }
+      },
+      modelSettings // Passing settings
     );
     
     setStreamAbort(() => abort);
@@ -154,84 +206,186 @@ export const TestPrompt: React.FC = () => {
               </button>
               <h1 className="text-xl font-bold text-gray-900">提示词测试</h1>
             </div>
-            <div className="relative">
-              <button 
-                onClick={() => setShowCostSettings(!showCostSettings)}
-                className="flex flex-col items-end mr-4 px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
-                title="点击设置模型单价"
-              >
-                <div className="flex items-center text-xs text-gray-500 space-x-2">
-                  <Calculator className="w-3 h-3" />
-                  <span>Tokens: {tokenCount}</span>
-                </div>
-                <div className="text-xs font-medium text-gray-700">
-                  ≈ ¥{cost.toFixed(5)}
-                </div>
-              </button>
+            
+            <div className="flex items-center space-x-2">
+              {/* Model Settings Button */}
+              <div className="relative">
+                <button
+                    onClick={() => setShowModelSettings(!showModelSettings)}
+                    className={`p-2 rounded-lg border transition-colors ${
+                        showModelSettings 
+                            ? 'bg-indigo-50 border-indigo-200 text-indigo-600' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                    title="模型设置"
+                >
+                    <Settings className="w-5 h-5" />
+                </button>
+                {showModelSettings && (
+                    <div className="absolute top-full right-0 mt-2 p-4 bg-white rounded-xl shadow-xl border border-gray-100 w-72 z-20">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-gray-900">模型参数设置</h3>
+                            <button onClick={() => setShowModelSettings(false)} className="text-gray-400 hover:text-gray-600">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">模型 (Model)</label>
+                                <input
+                                    type="text"
+                                    value={modelSettings.model}
+                                    onChange={(e) => setModelSettings({...modelSettings, model: e.target.value})}
+                                    className="w-full text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 mb-2"
+                                    placeholder="输入模型名称..."
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'].map(m => (
+                                        <button
+                                            key={m}
+                                            onClick={() => setModelSettings({...modelSettings, model: m})}
+                                            className={`text-[10px] px-2 py-1 rounded border transition-colors ${
+                                                modelSettings.model === m 
+                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-600 font-medium' 
+                                                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between mb-1">
+                                    <label className="block text-xs font-medium text-gray-700">随机性 (Temperature)</label>
+                                    <span className="text-xs text-gray-500">{modelSettings.temperature}</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.1"
+                                    value={modelSettings.temperature}
+                                    onChange={(e) => setModelSettings({...modelSettings, temperature: parseFloat(e.target.value)})}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div>
+                                <div className="flex justify-between mb-1">
+                                    <label className="block text-xs font-medium text-gray-700">核采样 (Top P)</label>
+                                    <span className="text-xs text-gray-500">{modelSettings.topP}</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.05"
+                                    value={modelSettings.topP}
+                                    onChange={(e) => setModelSettings({...modelSettings, topP: parseFloat(e.target.value)})}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">最大Token数</label>
+                                <input
+                                    type="number"
+                                    value={modelSettings.maxTokens}
+                                    onChange={(e) => setModelSettings({...modelSettings, maxTokens: parseInt(e.target.value)})}
+                                    className="w-full text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {showModelSettings && (
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setShowModelSettings(false)}
+                    />
+                )}
+              </div>
+
+              {/* Cost Settings */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowCostSettings(!showCostSettings)}
+                  className="flex flex-col items-end px-3 py-1 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer"
+                  title="点击设置模型单价"
+                >
+                  <div className="flex items-center text-xs text-gray-500 space-x-2">
+                    <Calculator className="w-3 h-3" />
+                    <span>Tokens: {tokenCount}</span>
+                  </div>
+                  <div className="text-xs font-medium text-gray-700">
+                    ≈ ¥{cost.toFixed(5)}
+                  </div>
+                </button>
+                
+                {showCostSettings && (
+                  <div className="absolute top-full right-0 mt-2 p-4 bg-white rounded-xl shadow-xl border border-gray-100 w-64 z-20">
+                    <h3 className="text-sm font-bold text-gray-900 mb-3">模型价格设置 (每1k tokens)</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">输入价格 (Input)</label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={inputPrice}
+                            onChange={(e) => setInputPrice(parseFloat(e.target.value) || 0)}
+                            className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">输出价格 (Output)</label>
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
+                          <input
+                            type="number"
+                            step="0.001"
+                            value={outputPrice}
+                            onChange={(e) => setOutputPrice(parseFloat(e.target.value) || 0)}
+                            className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
+                      点击外部关闭设置
+                    </div>
+                  </div>
+                )}
+                {showCostSettings && (
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowCostSettings(false)}
+                  />
+                )}
+              </div>
               
-              {showCostSettings && (
-                <div className="absolute top-full right-4 mt-2 p-4 bg-white rounded-xl shadow-xl border border-gray-100 w-64 z-20">
-                  <h3 className="text-sm font-bold text-gray-900 mb-3">模型价格设置 (每1k tokens)</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">输入价格 (Input)</label>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
-                        <input
-                          type="number"
-                          step="0.001"
-                          value={inputPrice}
-                          onChange={(e) => setInputPrice(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">输出价格 (Output)</label>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">¥</span>
-                        <input
-                          type="number"
-                          step="0.001"
-                          value={outputPrice}
-                          onChange={(e) => setOutputPrice(parseFloat(e.target.value) || 0)}
-                          className="w-full pl-6 pr-2 py-1.5 text-sm border border-gray-200 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
-                    点击外部关闭设置
-                  </div>
-                </div>
-              )}
-              {showCostSettings && (
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setShowCostSettings(false)}
-                />
-              )}
+              <button
+                onClick={handleTest}
+                className={`px-4 py-2 rounded-lg flex items-center font-medium transition-all ${
+                  loading 
+                    ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' 
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow-md'
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <StopCircle className="w-4 h-4 mr-2" />
+                    停止生成
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4 mr-2" />
+                    开始测试
+                  </>
+                )}
+              </button>
             </div>
-            <button
-              onClick={handleTest}
-              className={`px-4 py-2 rounded-lg flex items-center font-medium transition-all ${
-                loading 
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow-md'
-              }`}
-            >
-              {loading ? (
-                <>
-                  <StopCircle className="w-4 h-4 mr-2" />
-                  停止生成
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 mr-2" />
-                  开始测试
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
@@ -257,6 +411,30 @@ export const TestPrompt: React.FC = () => {
                 </button>
               </div>
             </div>
+            
+            {/* Variables Section */}
+            {variables.length > 0 && (
+                <div className="p-4 border-b border-gray-100 bg-yellow-50/30">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 mr-2"></span>
+                        变量设置
+                    </h3>
+                    <div className="grid grid-cols-1 gap-3">
+                        {variables.map(v => (
+                            <div key={v} className="flex items-center space-x-2">
+                                <label className="text-xs font-medium text-gray-600 min-w-[60px] text-right truncate" title={v}>{v}:</label>
+                                <input
+                                    type="text"
+                                    value={variableValues[v] || ''}
+                                    onChange={(e) => setVariableValues({...variableValues, [v]: e.target.value})}
+                                    placeholder={`输入 {{${v}}} 的值...`}
+                                    className="flex-1 text-sm border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500 py-1.5"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <DragDropContext onDragEnd={handleDragEnd}>
@@ -318,8 +496,20 @@ export const TestPrompt: React.FC = () => {
 
           {/* Right Column: Response */}
           <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
               <h2 className="font-semibold text-gray-700">模型响应</h2>
+              <button
+                onClick={handleCopy}
+                disabled={!response}
+                className={`p-1.5 rounded-md transition-all ${
+                    copied 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'hover:bg-gray-200 text-gray-500'
+                } ${!response ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="复制响应"
+              >
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 bg-white">
               {response ? (

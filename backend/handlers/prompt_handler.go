@@ -507,8 +507,12 @@ func (h *PromptHandler) GetSDKPrompt(c *gin.Context) {
 // TestPrompt 测试提示词
 func (h *PromptHandler) TestPrompt(c *gin.Context) {
 	type TestPromptRequest struct {
-		Messages []services.OpenAIMessage `json:"messages"`
-		Stream   bool                     `json:"stream"`
+		Messages    []services.OpenAIMessage `json:"messages"`
+		Stream      bool                     `json:"stream"`
+		Model       string                   `json:"model"`
+		Temperature *float64                 `json:"temperature"`
+		TopP        *float64                 `json:"top_p"`
+		MaxTokens   int                      `json:"max_tokens"`
 	}
 	var req TestPromptRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -531,9 +535,16 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		return
 	}
 
-	model := modelSetting.Value
+	model := req.Model
 	if model == "" {
-		model = "qwen-turbo"
+		model = modelSetting.Value
+	}
+
+	options := services.ChatOptions{
+		Model:       model,
+		Temperature: req.Temperature,
+		TopP:        req.TopP,
+		MaxTokens:   req.MaxTokens,
 	}
 
 	if req.Stream {
@@ -542,7 +553,7 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		c.Header("Connection", "keep-alive")
 		c.Header("Transfer-Encoding", "chunked")
 
-		err := services.CallAliyunChatStream(apiKeySetting.Value, apiURLSetting.Value, model, req.Messages, func(text string) error {
+		err := services.CallAliyunChatStream(apiKeySetting.Value, apiURLSetting.Value, options, req.Messages, func(text string) error {
 			data := map[string]string{"text": text}
 			jsonData, _ := json.Marshal(data)
 			c.SSEvent("message", string(jsonData))
@@ -556,7 +567,7 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		return
 	}
 
-	response, err := services.CallAliyunChat(apiKeySetting.Value, apiURLSetting.Value, model, req.Messages)
+	response, err := services.CallAliyunChat(apiKeySetting.Value, apiURLSetting.Value, options, req.Messages)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

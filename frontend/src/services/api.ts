@@ -49,14 +49,14 @@ class ApiService {
     });
   }
 
-  async testPrompt(messages: { role: string; content: string }[]): Promise<{ response: string }> {
+  async testPrompt(messages: { role: string; content: string }[], options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number }): Promise<{ response: string }> {
     return this.request<{ response: string }>('/test-prompt', {
       method: 'POST',
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, ...options }),
     });
   }
 
-  testPromptStream(messages: { role: string; content: string }[], onData: (text: string) => void, onError: (error: string) => void, onComplete?: () => void): () => void {
+  testPromptStream(messages: { role: string; content: string }[], onData: (text: string) => void, onError: (error: string) => void, onComplete?: () => void, options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number }): () => void {
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -65,7 +65,7 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages, stream: true }),
+      body: JSON.stringify({ messages, stream: true, ...options }),
       signal,
     })
       .then(async (response) => {
