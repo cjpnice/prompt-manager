@@ -289,6 +289,7 @@ class ApiService {
     category?: string;
     tag_ids?: string[];
     bump?: 'major' | 'minor' | 'patch' | 'none';
+    keep_version?: boolean;
   }): Promise<Prompt> {
     return this.request<Prompt>(`/prompts/${id}`, {
       method: 'PUT',

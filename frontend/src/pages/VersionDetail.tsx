@@ -33,6 +33,7 @@ export const VersionDetail: React.FC = () => {
   const [editTagIds, setEditTagIds] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [bumpType, setBumpType] = useState<'major' | 'patch'>('patch');
+  const [keepVersion, setKeepVersion] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<{
@@ -191,6 +192,7 @@ export const VersionDetail: React.FC = () => {
         description: editDescription,
         tag_ids: editTagIds,
         bump: bumpType,
+        keep_version: keepVersion,
       });
       setPrompt(updated);
       setIsEditing(false);
@@ -334,7 +336,13 @@ export const VersionDetail: React.FC = () => {
                 测试
               </button>
               <button
-                onClick={() => setIsEditing((prev) => !prev)}
+                onClick={() => {
+                  setIsEditing((prev) => !prev);
+                  // 如果取消编辑，重置keepVersion状态
+                  if (isEditing) {
+                    setKeepVersion(false);
+                  }
+                }}
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors flex items-center backdrop-blur-sm border border-white/10"
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -696,6 +704,7 @@ export const VersionDetail: React.FC = () => {
                       className="mr-2 text-indigo-600 focus:ring-indigo-500"
                       checked={bumpType === 'patch'}
                       onChange={() => setBumpType('patch')}
+                      disabled={keepVersion}
                     />
                     小幅修正 (Patch)
                   </label>
@@ -705,8 +714,20 @@ export const VersionDetail: React.FC = () => {
                       className="mr-2 text-indigo-600 focus:ring-indigo-500"
                       checked={bumpType === 'major'}
                       onChange={() => setBumpType('major')}
+                      disabled={keepVersion}
                     />
                     大版本更新 (Major)
+                  </label>
+                  
+                  {/* 新增保持版本号选项 */}
+                  <label className="flex items-center text-sm text-gray-600 cursor-pointer ml-6">
+                    <input
+                      type="checkbox"
+                      className="mr-2 text-indigo-600 focus:ring-indigo-500"
+                      checked={keepVersion}
+                      onChange={(e) => setKeepVersion(e.target.checked)}
+                    />
+                    保持当前版本号不变
                   </label>
                 </div>
                 
@@ -722,7 +743,7 @@ export const VersionDetail: React.FC = () => {
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg flex items-center font-medium shadow-md hover:shadow-lg transition-all"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    保存并生成新版本
+                    {keepVersion ? '保存当前版本' : '保存并生成新版本'}
                   </button>
                 </div>
               </div>
