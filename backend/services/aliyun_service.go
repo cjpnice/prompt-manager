@@ -103,7 +103,6 @@ const (
 - 鼓励迭代改进,欢迎用户反馈
 - 必要时询问澄清性问题
 
-现在,请告诉我你想优化的提示词,我将为你提供专业的改进方案。
 	`
 )
 
@@ -241,7 +240,7 @@ func CallAliyunStream(apiKey, apiURL, model, systemPrompt, userPrompt string, ca
 	} else {
 		messages = append(messages, OpenAIMessage{Role: "system", Content: DefaultSystemPrompt})
 	}
-	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt})
+	messages = append(messages, OpenAIMessage{Role: "user", Content: userPrompt+"\n帮我优化上面的提示词"})
 
 	return CallAliyunChatStream(apiKey, apiURL, ChatOptions{Model: model}, messages, callback)
 }
