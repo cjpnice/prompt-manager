@@ -15,6 +15,7 @@ import { apiService } from '../services/api';
 import { Prompt, Tag } from '../types/models';
 import DiffViewer from '../components/DiffViewer';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { SaveConfirmDialog } from '../components/SaveConfirmDialog';
 import { OptimizedPromptDialog } from '../components/OptimizedPromptDialog';
 
 export const VersionDetail: React.FC = () => {
@@ -35,6 +36,7 @@ export const VersionDetail: React.FC = () => {
   const [bumpType, setBumpType] = useState<'major' | 'patch'>('patch');
   const [keepVersion, setKeepVersion] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState<{
     original: string;
@@ -45,6 +47,13 @@ export const VersionDetail: React.FC = () => {
     optimized: '',
     isOpen: false,
   });
+  // 保存编辑前的原始值，用于检测是否有改动
+  const [originalEditValues, setOriginalEditValues] = useState<{
+    content: string;
+    category: string;
+    description: string;
+    tagIds: string[];
+  } | null>(null);
 
   const markdownComponents = {
     h1: ({ node, ...props }: any) => (
@@ -183,19 +192,34 @@ export const VersionDetail: React.FC = () => {
     return new Date(dateString).toLocaleString('zh-CN');
   };
 
-  const handleSaveEdit = async () => {
+  // 检查是否有改动
+  const hasChanges = (): boolean => {
+    if (!originalEditValues) return false;
+    return (
+      editContent !== originalEditValues.content ||
+      editCategory !== originalEditValues.category ||
+      editDescription !== originalEditValues.description ||
+      JSON.stringify(editTagIds.sort()) !== JSON.stringify(originalEditValues.tagIds.sort())
+    );
+  };
+
+  const handleSaveEdit = async (overrideBumpType?: 'major' | 'patch', overrideKeepVersion?: boolean) => {
     if (!prompt) return;
     try {
+      const finalBumpType = overrideBumpType !== undefined ? overrideBumpType : bumpType;
+      const finalKeepVersion = overrideKeepVersion !== undefined ? overrideKeepVersion : keepVersion;
+      
       const updated = await apiService.updatePrompt(prompt.id, {
         content: editContent,
         category: editCategory,
         description: editDescription,
         tag_ids: editTagIds,
-        bump: bumpType,
-        keep_version: keepVersion,
+        bump: finalBumpType,
+        keep_version: finalKeepVersion,
       });
       setPrompt(updated);
       setIsEditing(false);
+      setOriginalEditValues(null);
       // 如果创建了新版本（即内容发生变化），我们需要导航到新版本的页面
       if (updated.id !== prompt.id) {
         navigate(`/version/${updated.id}`);
@@ -206,6 +230,50 @@ export const VersionDetail: React.FC = () => {
     } catch (error) {
       console.error('Failed to update prompt:', error);
       alert('保存失败，请重试');
+    }
+  };
+
+  // 处理取消编辑
+  const handleCancelEdit = () => {
+    if (hasChanges()) {
+      setShowSaveConfirm(true);
+    } else {
+      // 没有改动，直接取消
+      setIsEditing(false);
+      setOriginalEditValues(null);
+      setKeepVersion(false);
+      // 重置编辑内容为原始值
+      if (prompt) {
+        setEditContent(prompt.content || '');
+        setEditCategory(prompt.category || '');
+        setEditDescription(prompt.description || '');
+        setEditTagIds(prompt.tags?.map(t => t.id) || []);
+      }
+    }
+  };
+
+  // 确认保存并关闭
+  const handleConfirmSaveAndClose = async (selectedBumpType: 'major' | 'patch', selectedKeepVersion: boolean) => {
+    setShowSaveConfirm(false);
+    // 更新状态以保持一致性
+    setBumpType(selectedBumpType);
+    setKeepVersion(selectedKeepVersion);
+    // 使用选择的版本参数保存
+    await handleSaveEdit(selectedBumpType, selectedKeepVersion);
+  };
+
+  // 确认不保存并关闭
+  const handleConfirmDiscard = () => {
+    setShowSaveConfirm(false);
+    setIsEditing(false);
+    setOriginalEditValues(null);
+    setKeepVersion(false);
+    // 重置编辑内容为原始值
+    if (prompt) {
+      setEditContent(prompt.content || '');
+      setEditCategory(prompt.category || '');
+      setEditDescription(prompt.description || '');
+      setEditTagIds(prompt.tags?.map(t => t.id) || []);
     }
   };
 
@@ -337,10 +405,18 @@ export const VersionDetail: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  setIsEditing((prev) => !prev);
-                  // 如果取消编辑，重置keepVersion状态
                   if (isEditing) {
-                    setKeepVersion(false);
+                    // 如果正在编辑，点击取消
+                    handleCancelEdit();
+                  } else {
+                    // 进入编辑模式，保存原始值
+                    setIsEditing(true);
+                    setOriginalEditValues({
+                      content: prompt?.content || '',
+                      category: prompt?.category || '',
+                      description: prompt?.description || '',
+                      tagIds: prompt?.tags?.map(t => t.id) || [],
+                    });
                   }
                 }}
                 className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors flex items-center backdrop-blur-sm border border-white/10"
@@ -378,6 +454,16 @@ export const VersionDetail: React.FC = () => {
         confirmText="确认删除"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
+      />
+
+      <SaveConfirmDialog
+        isOpen={showSaveConfirm}
+        bumpType={bumpType}
+        keepVersion={keepVersion}
+        onConfirm={handleConfirmSaveAndClose}
+        onCancel={handleConfirmDiscard}
+        onBumpTypeChange={setBumpType}
+        onKeepVersionChange={setKeepVersion}
       />
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 w-full pb-12">
@@ -733,7 +819,7 @@ export const VersionDetail: React.FC = () => {
                 
                 <div className="flex space-x-3">
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancelEdit}
                     className="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                   >
                     取消
