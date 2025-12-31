@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { ArrowLeft, Trash2, Play, GripVertical, StopCircle, Calculator, Copy, Settings, X, Check } from 'lucide-react';
+import { ArrowLeft, Trash2, Play, GripVertical, StopCircle, Calculator, Copy, Settings, X, Check, GitCompare, ChevronDown } from 'lucide-react';
 import { apiService } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { encode } from 'gpt-tokenizer';
+import { Prompt } from '../types/models';
 
 interface Message {
   id: string;
@@ -30,6 +31,10 @@ export const TestPrompt: React.FC = () => {
   ]);
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // 对比模式专用状态
+  const [compareResponses, setCompareResponses] = useState<Record<string, string>>({});
+  const [compareLoading, setCompareLoading] = useState<Record<string, boolean>>({});
   const [streamAbort, setStreamAbort] = useState<(() => void) | null>(null);
   const [tokenCount, setTokenCount] = useState(0);
   const [cost, setCost] = useState(0);
@@ -50,6 +55,13 @@ export const TestPrompt: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [variablePrefix, setVariablePrefix] = useState('{{');
   const [variableSuffix, setVariableSuffix] = useState('}}');
+  
+  // 多版本对比功能状态
+  const [compareMode, setCompareMode] = useState(false);
+  const [availableVersions, setAvailableVersions] = useState<Prompt[]>([]);
+  const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
+  const [currentCompareIndex, setCurrentCompareIndex] = useState(0);
+  const [showVersionSelector, setShowVersionSelector] = useState(false);
 
   // Escape regex special characters
   const escapeRegExp = (string: string) => {
@@ -117,6 +129,7 @@ export const TestPrompt: React.FC = () => {
   useEffect(() => {
     if (id) {
       loadPrompt(id);
+      loadAvailableVersions(id);
     }
   }, [id]);
 
@@ -134,6 +147,21 @@ export const TestPrompt: React.FC = () => {
       });
     } catch (error) {
       console.error('Failed to load prompt:', error);
+    }
+  };
+
+  const loadAvailableVersions = async (promptId: string) => {
+    try {
+      const currentPrompt = await apiService.getPrompt(promptId);
+      if (currentPrompt.project_id) {
+        const response = await apiService.getPrompts(currentPrompt.project_id);
+        const versions = (response.data || [])
+          .filter((p: Prompt) => p.name === currentPrompt.name)
+          .sort((a: Prompt, b: Prompt) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setAvailableVersions(versions);
+      }
+    } catch (error) {
+      console.error('Failed to load available versions:', error);
     }
   };
 
@@ -170,6 +198,85 @@ export const TestPrompt: React.FC = () => {
     }
   };
 
+  // 对比模式下的并行测试
+  const handleCompareTest = async () => {
+    if (selectedVersions.length !== 2) return;
+    
+    // 重置所有响应状态
+    setCompareResponses({});
+    setCompareLoading({});
+    
+    // 为每个版本并行测试
+    selectedVersions.forEach(async (versionId) => {
+      const version = availableVersions.find(v => v.id === versionId);
+      if (!version) return;
+      
+      // 设置加载状态
+      setCompareLoading(prev => ({ ...prev, [versionId]: true }));
+      
+      // 准备消息，替换系统消息为当前版本的提示词内容
+      const apiMessages = messages.map(({ role, content }) => {
+        let newContent = content;
+        
+        // 如果是系统提示词，使用当前版本的内容
+        if (role === 'system') {
+          newContent = version.content;
+        }
+        
+        // 变量替换
+        if (variablePrefix && variableSuffix) {
+          const escapedPrefix = escapeRegExp(variablePrefix);
+          const escapedSuffix = escapeRegExp(variableSuffix);
+          
+          variables.forEach(v => {
+            try {
+              const regex = new RegExp(`${escapedPrefix}\\s*${escapeRegExp(v)}\\s*${escapedSuffix}`, 'g');
+              newContent = newContent.replace(regex, variableValues[v] || '');
+            } catch (e) {
+              console.error('Replace error:', e);
+            }
+          });
+        }
+        
+        return { role, content: newContent };
+      });
+      
+      try {
+        let fullResponse = '';
+        
+        const abort = apiService.testPromptStream(
+          apiMessages,
+          (text) => {
+            fullResponse += text;
+            setCompareResponses(prev => ({ ...prev, [versionId]: fullResponse }));
+          },
+          (error) => {
+            console.error(`Stream error for version ${versionId}:`, error);
+            setCompareResponses(prev => ({ 
+              ...prev, 
+              [versionId]: `生成出错: ${error}` 
+            }));
+          },
+          () => {
+            setCompareLoading(prev => ({ ...prev, [versionId]: false }));
+          }
+        );
+        
+        // 存储abort函数以便后续取消
+        if (abort) {
+          // 可以在这里存储abort函数，如果需要取消功能
+        }
+      } catch (error) {
+        console.error(`Test error for version ${versionId}:`, error);
+        setCompareResponses(prev => ({ 
+          ...prev, 
+          [versionId]: `测试出错: ${error}` 
+        }));
+        setCompareLoading(prev => ({ ...prev, [versionId]: false }));
+      }
+    });
+  };
+
   const handleTest = async () => {
     if (loading) {
         // Stop generation
@@ -185,8 +292,15 @@ export const TestPrompt: React.FC = () => {
     setResponse('');
     
     // Replace variables
+    const currentPromptContent = getCurrentPromptContent();
     const apiMessages = messages.map(({ role, content }) => {
       let newContent = content;
+      
+      // 如果是系统提示词，使用当前选中的版本内容
+      if (role === 'system' && currentPromptContent) {
+        newContent = currentPromptContent;
+      }
+      
       if (variablePrefix && variableSuffix) {
           const escapedPrefix = escapeRegExp(variablePrefix);
           const escapedSuffix = escapeRegExp(variableSuffix);
@@ -225,6 +339,69 @@ export const TestPrompt: React.FC = () => {
     setStreamAbort(() => abort);
   };
 
+  const handleVersionSelect = (versionId: string) => {
+    if (selectedVersions.includes(versionId)) {
+      setSelectedVersions(selectedVersions.filter(id => id !== versionId));
+    } else if (selectedVersions.length < 2) {
+      setSelectedVersions([...selectedVersions, versionId]);
+    }
+  };
+
+  const startCompare = () => {
+    if (selectedVersions.length === 2) {
+      setCompareMode(true);
+      setCurrentCompareIndex(0);
+      setShowVersionSelector(false);
+    }
+  };
+
+  // 切换对比版本
+  const switchCompareVersion = () => {
+    const newIndex = currentCompareIndex === 0 ? 1 : 0;
+    setCurrentCompareIndex(newIndex);
+    
+    // 获取新版本的信息
+    const newVersionId = selectedVersions[newIndex];
+    const newVersion = availableVersions.find(v => v.id === newVersionId);
+    
+    // 更新系统消息为当前版本的提示词内容
+    if (newVersion) {
+      const updatedMessages = messages.map(msg => 
+        msg.role === 'system' 
+          ? { ...msg, content: newVersion.content }
+          : msg
+      );
+      setMessages(updatedMessages);
+      
+      // 清空当前测试结果，让用户重新测试新版本
+      setResponse('');
+    }
+  };
+
+  const getCurrentComparePrompt = () => {
+    if (!compareMode || selectedVersions.length !== 2) return null;
+    return availableVersions.find(v => v.id === selectedVersions[currentCompareIndex]);
+  };
+
+  // 根据当前模式获取要使用的提示词内容
+  const getCurrentPromptContent = () => {
+    const comparePrompt = getCurrentComparePrompt();
+    if (comparePrompt) {
+      return comparePrompt.content;
+    }
+    // 默认模式：使用messages中的系统提示词
+    const systemMessage = messages.find(m => m.role === 'system');
+    return systemMessage?.content || '';
+  };
+
+  // 退出对比模式
+  const exitCompareMode = () => {
+    setCompareMode(false);
+    setSelectedVersions([]);
+    setCurrentCompareIndex(0);
+    setShowVersionSelector(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
@@ -241,6 +418,73 @@ export const TestPrompt: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-2">
+              {/* Version Compare Button */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowVersionSelector(!showVersionSelector)}
+                  className={`px-3 py-2 rounded-lg border transition-colors flex items-center space-x-2 ${
+                    showVersionSelector 
+                      ? 'bg-indigo-50 border-indigo-200 text-indigo-600' 
+                      : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title="版本对比"
+                >
+                  <GitCompare className="w-4 h-4" />
+                  <span className="text-sm">版本对比</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                {showVersionSelector && (
+                  <div className="absolute top-full right-0 mt-2 p-4 bg-white rounded-xl shadow-xl border border-gray-100 w-80 z-20">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-bold text-gray-900">选择版本对比</h3>
+                      <button onClick={() => setShowVersionSelector(false)} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {availableVersions.map((version) => (
+                        <div key={version.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            checked={selectedVersions.includes(version.id)}
+                            onChange={() => handleVersionSelect(version.id)}
+                            disabled={!selectedVersions.includes(version.id) && selectedVersions.length >= 2}
+                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">{version.version}</div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(version.created_at).toLocaleDateString('zh-CN')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+                      <span className="text-xs text-gray-500">已选择 {selectedVersions.length}/2</span>
+                      <button
+                        onClick={startCompare}
+                        disabled={selectedVersions.length !== 2}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          selectedVersions.length === 2
+                            ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        开始对比
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {showVersionSelector && (
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowVersionSelector(false)}
+                  />
+                )}
+              </div>
+
               {/* Model Settings Button */}
               <div className="relative">
                 <button
@@ -424,6 +668,31 @@ export const TestPrompt: React.FC = () => {
       </div>
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {compareMode ? (
+          <CompareModeView
+            selectedVersions={selectedVersions}
+            availableVersions={availableVersions}
+            currentCompareIndex={currentCompareIndex}
+            onSwitchVersion={switchCompareVersion}
+            onExitCompare={exitCompareMode}
+            messages={messages}
+            response={response}
+            loading={loading}
+            copied={copied}
+            handleCopy={handleCopy}
+            handleTest={handleTest}
+            handleCompareTest={handleCompareTest}
+            setMessages={setMessages}
+            setResponse={setResponse}
+            setLoading={setLoading}
+            variableValues={variableValues}
+            setVariableValues={setVariableValues}
+            variables={variables}
+            compareResponses={compareResponses}
+            compareLoading={compareLoading}
+            setCompareResponses={setCompareResponses}
+          />
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-140px)]">
           {/* Left Column: Chat Config */}
           <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -609,6 +878,393 @@ export const TestPrompt: React.FC = () => {
                       <p>点击"开始测试"查看效果</p>
                     </>
                   )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 对比模式组件
+interface CompareModeViewProps {
+  selectedVersions: string[];
+  availableVersions: Prompt[];
+  currentCompareIndex: number;
+  onSwitchVersion: () => void;
+  onExitCompare: () => void;
+  messages: Message[];
+  response: string;
+  loading: boolean;
+  copied: boolean;
+  handleCopy: () => void;
+  handleTest: () => void;
+  handleCompareTest: () => void;
+  setMessages: (messages: Message[]) => void;
+  setResponse: (response: string) => void;
+  setLoading: (loading: boolean) => void;
+  variableValues: Record<string, string>;
+  setVariableValues: (values: Record<string, string>) => void;
+  variables: string[];
+  compareResponses: Record<string, string>;
+  compareLoading: Record<string, boolean>;
+  setCompareResponses: (responses: Record<string, string>) => void;
+}
+
+const CompareModeView: React.FC<CompareModeViewProps> = ({
+  selectedVersions,
+  availableVersions,
+  currentCompareIndex,
+  onSwitchVersion,
+  onExitCompare,
+  messages,
+  response,
+  loading,
+  copied,
+  handleCopy,
+  handleTest,
+  handleCompareTest,
+  setMessages,
+  setResponse,
+  setLoading,
+  variableValues,
+  setVariableValues,
+  variables,
+  compareResponses,
+  compareLoading,
+  setCompareResponses
+}) => {
+    const currentVersion = availableVersions.find(v => v.id === selectedVersions[currentCompareIndex]);
+    const version1 = availableVersions.find(v => v.id === selectedVersions[0]);
+    const version2 = availableVersions.find(v => v.id === selectedVersions[1]);
+
+    // 获取当前版本的响应
+    const currentResponse = compareResponses[selectedVersions[currentCompareIndex]] || '';
+    
+    // 添加清空函数
+    const clearAllResponses = () => {
+      setCompareResponses({});
+      setResponse('');
+    };
+
+    // 当版本切换时，更新系统消息
+    useEffect(() => {
+      if (currentVersion) {
+        const updatedMessages = messages.map(msg => 
+          msg.role === 'system' 
+            ? { ...msg, content: currentVersion.content }
+            : msg
+        );
+        setMessages(updatedMessages);
+      }
+    }, [currentCompareIndex, currentVersion]);
+
+  // 更新消息内容
+  const updateMessage = (index: number, content: string) => {
+    const newMessages = [...messages];
+    newMessages[index].content = content;
+    setMessages(newMessages);
+  };
+
+  // 更新系统消息内容
+  const updateSystemMessage = (content: string) => {
+    const updatedMessages = messages.map(msg => 
+      msg.role === 'system' 
+        ? { ...msg, content: content }
+        : msg
+    );
+    setMessages(updatedMessages);
+  };
+
+  // 添加消息
+  const addMessage = () => {
+    const newMessage: Message = { 
+      id: `user-${Date.now()}`, 
+      role: 'user', 
+      content: '' 
+    };
+    setMessages([...messages, newMessage]);
+  };
+
+  // 删除消息
+  const deleteMessage = (index: number) => {
+    if (messages.length > 1) {
+      const newMessages = messages.filter((_, i) => i !== index);
+      setMessages(newMessages);
+    }
+  };
+
+  return (
+    <div className="h-[calc(100vh-140px)]">
+      {/* 对比模式头部 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-bold text-gray-900">多版本效果对比</h2>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">当前测试:</span>
+              <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-sm font-medium">
+                {currentVersion?.version}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            {/* 版本切换按钮 - 移到更显眼的位置并优化样式 */}
+            <button
+              onClick={onSwitchVersion}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 font-medium"
+              title="切换到另一个版本"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              <span>切换版本</span>
+            </button>
+            <button
+              onClick={onExitCompare}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              退出对比
+            </button>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center space-x-4 text-sm text-gray-600">
+          <span>对比版本:</span>
+          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
+            {availableVersions.find(v => v.id === selectedVersions[0])?.version}
+          </span>
+          <span className="text-gray-400">vs</span>
+          <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+            {availableVersions.find(v => v.id === selectedVersions[1])?.version}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
+        {/* 左侧: 对话配置 */}
+        <div className="xl:col-span-2 space-y-6">
+          {/* 提示词内容显示 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-semibold text-gray-700">当前版本提示词</h3>
+              <p className="text-sm text-gray-500 mt-1">{currentVersion?.version}</p>
+            </div>
+            <div className="p-4">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed max-h-40 overflow-y-auto">
+                  {currentVersion?.content || '无内容'}
+                </pre>
+              </div>
+              <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-xs text-blue-700">
+                  <span className="font-medium">提示：</span>
+                  系统消息已自动替换为当前版本的提示词内容
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 对话消息 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+              <h3 className="font-semibold text-gray-700">对话配置</h3>
+              <button
+                onClick={addMessage}
+                className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                添加消息
+              </button>
+            </div>
+            <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+              {messages.map((message, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-3">
+                  <div className="flex justify-between items-center mb-2">
+                    <select
+                      value={message.role}
+                      onChange={(e) => {
+                        const newMessages = [...messages];
+                        newMessages[index].role = e.target.value as 'system' | 'user' | 'assistant';
+                        setMessages(newMessages);
+                      }}
+                      className="text-sm px-2 py-1 border border-gray-300 rounded-md"
+                    >
+                      <option value="system">系统</option>
+                      <option value="user">用户</option>
+                      <option value="assistant">助手</option>
+                    </select>
+                    {messages.length > 1 && (
+                      <button
+                        onClick={() => deleteMessage(index)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        删除
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    value={message.content}
+                    onChange={(e) => updateMessage(index, e.target.value)}
+                    placeholder="输入消息内容..."
+                    className="w-full p-2 text-sm border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 右侧: 变量和测试 */}
+        <div className="space-y-6">
+          {/* 变量替换 */}
+          {variables.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="font-semibold text-gray-700">变量替换</h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {variables.map((variable) => (
+                  <div key={variable}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {variable}
+                    </label>
+                    <input
+                      type="text"
+                      value={variableValues[variable] || ''}
+                      onChange={(e) => setVariableValues({ ...variableValues, [variable]: e.target.value })}
+                      placeholder={`输入${variable}的值`}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 测试控制 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="font-semibold text-gray-700">测试控制</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              <button
+                onClick={handleCompareTest}
+                disabled={Object.values(compareLoading).some(Boolean)}
+                className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+              >
+                {Object.values(compareLoading).some(Boolean) ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>并行测试中...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>同时测试两个版本</span>
+                  </>
+                )}
+              </button>
+              <button
+                  onClick={clearAllResponses}
+                  disabled={Object.keys(compareResponses || {}).length === 0 && !response}
+                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                清空所有响应
+              </button>
+            </div>
+          </div>
+
+          {/* 对比结果 */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1">
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-gray-700">
+                  对比结果 - {currentCompareIndex === 0 ? version1?.version : version2?.version}
+                </h3>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-500">
+                    {currentCompareIndex === 0 ? '版本 A' : '版本 B'}
+                  </span>
+                  <button
+                    onClick={handleCopy}
+                    disabled={!currentResponse}
+                    className={`p-1.5 rounded-md transition-all ${
+                      copied 
+                        ? 'bg-green-100 text-green-600' 
+                        : 'hover:bg-gray-200 text-gray-500'
+                    } ${!currentResponse ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title="复制响应"
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            
+              
+              {/* 测试状态指示器 */}
+              <div className="flex space-x-2 text-xs">
+                <div className={`flex items-center space-x-1 px-2 py-1 rounded ${
+                  compareLoading[selectedVersions[0]] 
+                    ? 'bg-yellow-100 text-yellow-700' 
+                    : compareResponses[selectedVersions[0]] 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    compareLoading[selectedVersions[0]] ? 'bg-yellow-400 animate-pulse' : 
+                    compareResponses[selectedVersions[0]] ? 'bg-green-400' : 'bg-gray-300'
+                  }`}></div>
+                  <span>{version1?.version}</span>
+                  {compareLoading[selectedVersions[0]] && <span>测试中...</span>}
+                </div>
+                
+                <div className={`flex items-center space-x-1 px-2 py-1 rounded ${
+                  compareLoading[selectedVersions[1]] 
+                    ? 'bg-yellow-100 text-yellow-700' 
+                    : compareResponses[selectedVersions[1]] 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full ${
+                    compareLoading[selectedVersions[1]] ? 'bg-yellow-400 animate-pulse' : 
+                    compareResponses[selectedVersions[1]] ? 'bg-green-400' : 'bg-gray-300'
+                  }`}></div>
+                  <span>{version2?.version}</span>
+                  {compareLoading[selectedVersions[1]] && <span>测试中...</span>}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-64">
+              {currentResponse ? (
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm, remarkBreaks]}
+                    components={{
+                      code({node, inline, className, children, ...props}: any) {
+                        return !inline ? (
+                          <pre className="bg-gray-800 text-gray-100 p-3 rounded-lg overflow-x-auto my-3 text-sm">
+                            <code {...props} className={className}>
+                              {children}
+                            </code>
+                          </pre>
+                        ) : (
+                          <code {...props} className="bg-gray-100 text-red-500 px-1 py-0.5 rounded text-sm font-mono">
+                            {children}
+                          </code>
+                        )
+                      }
+                    }}
+                  >
+                    {currentResponse}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400 py-8">
+                  <Play className="w-8 h-8 mb-2 opacity-20" />
+                  <p className="text-sm">点击"同时测试两个版本"查看对比效果</p>
                 </div>
               )}
             </div>
