@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Search, ArrowLeft, ArrowRightLeft, Tag as TagIcon, Calendar, FileText, Trash2, Grid, ChevronDown, ChevronRight, FolderOpen, MoreHorizontal, Download } from 'lucide-react';
+import { Plus, Search, ArrowLeft, ArrowRightLeft, Calendar, FileText, Trash2, Grid, ChevronRight, FolderOpen, Download, Filter } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Project, Prompt } from '../types/models';
 import { CreatePromptModal } from '../components/CreatePromptModal';
@@ -14,6 +14,7 @@ export const ProjectDetail: React.FC = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('全部');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [collapsedCategories, setCollapseCategories] = useState<Set<string>>(new Set());
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -104,13 +105,25 @@ export const ProjectDetail: React.FC = () => {
     navigate(`/version/${prompt.id}`);
   };
 
-  const filteredPrompts = prompts.filter(prompt =>
-    prompt.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prompt.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prompt.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prompt.version.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prompt.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPrompts = prompts.filter(prompt => {
+    const matchesSearch = searchTerm === '' || 
+      prompt.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.version.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prompt.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === '全部' || 
+      (prompt.category || '未分类') === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories for filter dropdown
+  const uniqueCategories = React.useMemo(() => {
+    const categories = Array.from(new Set(prompts.map(p => p.category || '未分类')));
+    return ['全部', ...categories.sort()];
+  }, [prompts]);
 
   const groupedByCategory: Record<string, Prompt[]> = filteredPrompts.reduce((acc, p) => {
     const key = (p.category && p.category.trim()) ? p.category.trim() : '未分类';
@@ -231,15 +244,33 @@ export const ProjectDetail: React.FC = () => {
 
         {/* Action Toolbar */}
         <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="搜索版本、内容或标签..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all"
-            />
+          <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="搜索版本、内容或标签..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all"
+              />
+            </div>
+            
+            {/* Category Filter Dropdown */}
+            <div className="relative">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:bg-white transition-all cursor-pointer"
+              >
+                {uniqueCategories.map(category => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            </div>
           </div>
 
           <div className="flex items-center space-x-3">
