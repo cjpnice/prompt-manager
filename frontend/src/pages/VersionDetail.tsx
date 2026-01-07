@@ -209,8 +209,18 @@ export const VersionDetail: React.FC = () => {
   const handleSaveEdit = async (overrideBumpType?: 'major' | 'patch', overrideKeepVersion?: boolean) => {
     if (!prompt) return;
     try {
+      // 判断是否是纯元数据修改（不修改内容）
+      const isContentOnlyChange = editContent !== originalEditValues.content;
+      const isMetaDataChange = editName !== originalEditValues.name || 
+                               editCategory !== originalEditValues.category ||
+                               editDescription !== originalEditValues.description ||
+                               JSON.stringify(editTagIds.sort()) !== JSON.stringify(originalEditValues.tagIds.sort());
+      
+      // 如果只修改元数据而不修改内容，强制使用保持版本号
+      const shouldKeepVersion = !isContentOnlyChange && isMetaDataChange;
+      
       const finalBumpType = overrideBumpType !== undefined ? overrideBumpType : bumpType;
-      const finalKeepVersion = overrideKeepVersion !== undefined ? overrideKeepVersion : keepVersion;
+      const finalKeepVersion = overrideKeepVersion !== undefined ? overrideKeepVersion : (shouldKeepVersion || keepVersion);
       
       const updated = await apiService.updatePrompt(prompt.id, {
         name: editName,

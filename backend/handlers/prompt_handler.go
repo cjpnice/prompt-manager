@@ -242,13 +242,13 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 		// 直接更新当前记录的content，不创建新版本
 		existing.Content = req.Content
 		// 更新名称
-		if req.Name != "" {
+		if req.Name != "" && req.Name != existing.Name {
 			existing.Name = req.Name
 		}
-		if req.Description != "" {
+		if req.Description != "" && req.Description != existing.Description {
 			existing.Description = req.Description
 		}
-		if req.Category != "" {
+		if req.Category != "" && req.Category != existing.Category {
 			// 分类必须存在
 			var categoryCount int64
 			if err := database.DB.Model(&models.Category{}).Where("name = ?", req.Category).Count(&categoryCount).Error; err != nil {
@@ -365,8 +365,8 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 
 	// 仅更新元信息（描述、分类、标签、名称）
 	updated := false
-	// 如果请求中包含名称（即使是空字符串），则更新名称
-	if req.Name != "" || (req.Name == "" && existing.Name != "") {
+	// 如果请求中包含名称字段且名称有变化，则更新名称
+	if req.Name != "" && req.Name != existing.Name {
 		existing.Name = req.Name
 		updated = true
 	}
