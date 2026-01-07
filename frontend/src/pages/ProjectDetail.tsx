@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, Search, ArrowLeft, ArrowRightLeft, Calendar, FileText, Trash2, Grid, ChevronRight, FolderOpen, Download, Filter } from 'lucide-react';
+import { Plus, Search, ArrowLeft, ArrowRightLeft, Calendar, FileText, Trash2, Grid, ChevronRight, FolderOpen, Download, Filter, Edit, Save, X } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Project, Prompt } from '../types/models';
 import { CreatePromptModal } from '../components/CreatePromptModal';
@@ -28,6 +28,9 @@ export const ProjectDetail: React.FC = () => {
     message: '',
     onConfirm: () => {},
   });
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [editProjectName, setEditProjectName] = useState('');
+  const [editProjectDescription, setEditProjectDescription] = useState('');
 
   const closeConfirmDialog = () => {
     setConfirmDialog(prev => ({ ...prev, isOpen: false }));
@@ -103,6 +106,36 @@ export const ProjectDetail: React.FC = () => {
 
   const handlePromptClick = (prompt: Prompt) => {
     navigate(`/version/${prompt.id}`);
+  };
+
+  const handleEditProject = () => {
+    if (project) {
+      setEditProjectName(project.name);
+      setEditProjectDescription(project.description || '');
+      setIsEditingProject(true);
+    }
+  };
+
+  const handleSaveProject = async () => {
+    if (!project) return;
+    
+    try {
+      const updatedProject = await apiService.updateProject(project.id, {
+        name: editProjectName,
+        description: editProjectDescription,
+      });
+      setProject(updatedProject);
+      setIsEditingProject(false);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      alert('更新项目信息失败，请重试');
+    }
+  };
+
+  const handleCancelEditProject = () => {
+    setIsEditingProject(false);
+    setEditProjectName('');
+    setEditProjectDescription('');
   };
 
   const filteredPrompts = prompts.filter(prompt => {
@@ -192,15 +225,66 @@ export const ProjectDetail: React.FC = () => {
           
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <div className="flex items-center mb-2">
-                <div className="p-2 bg-white/10 rounded-lg mr-3 backdrop-blur-sm">
-                  <FolderOpen className="w-6 h-6 text-indigo-300" />
-                </div>
-                <h1 className="text-3xl font-bold">{project.name}</h1>
-              </div>
-              <p className="text-indigo-200 max-w-2xl text-lg leading-relaxed ml-12">
-                {project.description || '暂无项目描述'}
-              </p>
+              {!isEditingProject ? (
+                <>
+                  <div className="flex items-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg mr-3 backdrop-blur-sm">
+                      <FolderOpen className="w-6 h-6 text-indigo-300" />
+                    </div>
+                    <h1 className="text-3xl font-bold">{project.name}</h1>
+                    <button
+                      onClick={handleEditProject}
+                      className="ml-4 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                      title="编辑项目信息"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="text-indigo-200 max-w-2xl text-lg leading-relaxed ml-12">
+                    {project.description || '暂无项目描述'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center mb-4">
+                    <div className="p-2 bg-white/10 rounded-lg mr-3 backdrop-blur-sm">
+                      <FolderOpen className="w-6 h-6 text-indigo-300" />
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={editProjectName}
+                        onChange={(e) => setEditProjectName(e.target.value)}
+                        className="text-3xl font-bold bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent"
+                        placeholder="项目名称"
+                      />
+                    </div>
+                  </div>
+                  <div className="ml-12 mb-4">
+                    <textarea
+                      value={editProjectDescription}
+                      onChange={(e) => setEditProjectDescription(e.target.value)}
+                      className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-indigo-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent resize-none"
+                      placeholder="项目描述"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="ml-12 flex gap-3">
+                    <button
+                      onClick={handleSaveProject}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                    >
+                      保存
+                    </button>
+                    <button
+                      onClick={handleCancelEditProject}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                    >
+                      取消
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
