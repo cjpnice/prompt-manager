@@ -284,6 +284,7 @@ class ApiService {
   }
 
   async updatePrompt(id: string, data: {
+    name?: string;
     content?: string;
     description?: string;
     category?: string;

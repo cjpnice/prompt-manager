@@ -201,6 +201,7 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 	id := c.Param("id")
 
 	var req struct {
+		Name        string   `json:"name"`
 		Content     string   `json:"content"`
 		Description string   `json:"description"`
 		Category    string   `json:"category"`
@@ -225,6 +226,7 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 
 	// 判断内容是否变化
 	contentChanged := req.Content != "" && req.Content != existing.Content
+
 	bump := req.Bump
 	if bump == "" {
 		bump = "patch"
@@ -239,6 +241,10 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 
 		// 直接更新当前记录的content，不创建新版本
 		existing.Content = req.Content
+		// 更新名称
+		if req.Name != "" {
+			existing.Name = req.Name
+		}
 		if req.Description != "" {
 			existing.Description = req.Description
 		}
@@ -302,8 +308,13 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 		// 创建新版本记录
 		newVersion := h.versionService.GenerateNextVersion(existing.Version, bump)
 		newPrompt := models.Prompt{
-			ProjectID:   existing.ProjectID,
-			Name:        existing.Name,
+			ProjectID: existing.ProjectID,
+			Name: func() string {
+				if req.Name != "" {
+					return req.Name
+				}
+				return existing.Name
+			}(),
 			Version:     newVersion,
 			Content:     req.Content,
 			Description: req.Description,
@@ -352,8 +363,13 @@ func (h *PromptHandler) UpdatePrompt(c *gin.Context) {
 		return
 	}
 
-	// 仅更新元信息（描述、分类、标签）
+	// 仅更新元信息（描述、分类、标签、名称）
 	updated := false
+	// 如果请求中包含名称（即使是空字符串），则更新名称
+	if req.Name != "" || (req.Name == "" && existing.Name != "") {
+		existing.Name = req.Name
+		updated = true
+	}
 	if req.Description != "" {
 		existing.Description = req.Description
 		updated = true

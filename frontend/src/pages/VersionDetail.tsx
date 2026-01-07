@@ -28,6 +28,7 @@ export const VersionDetail: React.FC = () => {
   const [previousVersion, setPreviousVersion] = useState<Prompt | null>(null);
   const [allVersions, setAllVersions] = useState<Prompt[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -49,6 +50,7 @@ export const VersionDetail: React.FC = () => {
   });
   // 保存编辑前的原始值，用于检测是否有改动
   const [originalEditValues, setOriginalEditValues] = useState<{
+    name: string;
     content: string;
     category: string;
     description: string;
@@ -132,6 +134,7 @@ export const VersionDetail: React.FC = () => {
       const promptData = await apiService.getPrompt(id!);
       setPrompt(promptData);
       setEditContent(promptData.content || '');
+      setEditName(promptData.name || '');
       setEditCategory(promptData.category || '');
       setEditDescription(promptData.description || '');
       setEditTagIds(promptData.tags?.map(t => t.id) || []);
@@ -210,6 +213,7 @@ export const VersionDetail: React.FC = () => {
       const finalKeepVersion = overrideKeepVersion !== undefined ? overrideKeepVersion : keepVersion;
       
       const updated = await apiService.updatePrompt(prompt.id, {
+        name: editName,
         content: editContent,
         category: editCategory,
         description: editDescription,
@@ -245,6 +249,7 @@ export const VersionDetail: React.FC = () => {
       // 重置编辑内容为原始值
       if (prompt) {
         setEditContent(prompt.content || '');
+        setEditName(prompt.name || '');
         setEditCategory(prompt.category || '');
         setEditDescription(prompt.description || '');
         setEditTagIds(prompt.tags?.map(t => t.id) || []);
@@ -271,6 +276,7 @@ export const VersionDetail: React.FC = () => {
     // 重置编辑内容为原始值
     if (prompt) {
       setEditContent(prompt.content || '');
+      setEditName(prompt.name || '');
       setEditCategory(prompt.category || '');
       setEditDescription(prompt.description || '');
       setEditTagIds(prompt.tags?.map(t => t.id) || []);
@@ -412,6 +418,7 @@ export const VersionDetail: React.FC = () => {
                     // 进入编辑模式，保存原始值
                     setIsEditing(true);
                     setOriginalEditValues({
+                      name: prompt?.name || '',
                       content: prompt?.content || '',
                       category: prompt?.category || '',
                       description: prompt?.description || '',
@@ -644,6 +651,20 @@ export const VersionDetail: React.FC = () => {
               {/* Metadata Panel */}
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <div className="grid grid-cols-1 gap-6">
+                  {/* Name Input */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                      <FileText className="w-4 h-4 mr-2 text-indigo-500" />
+                      名称
+                    </label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      placeholder="输入提示词名称"
+                    />
+                  </div>
                   {/* Category & Tags Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
