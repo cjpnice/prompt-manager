@@ -7,6 +7,7 @@ Prompt Manager 是一个全栈应用程序，旨在帮助开发者和提示词�
 ![alt text](image-1.png)
 ![alt text](image-2.png)
 ![alt text](image-3.png)
+![alt text](image-4.png)
 
 ## 功能特性
 
