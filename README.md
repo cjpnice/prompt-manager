@@ -11,16 +11,20 @@ Prompt Manager is a full-stack application designed to help developers and promp
 ## Features
 
 - **Project Management**: Organize your prompts into distinct projects.
-- **Prompt Versioning**: automatically track changes to your prompts with version control.
+- **Prompt Versioning**: Automatically track changes to your prompts with version control.
 - **Diff Viewer**: Visually compare different versions of a prompt to see what changed.
+- **Version Comparison Mode**: Multi-version comparison in test prompt playground for side-by-side testing.
+- **Advanced Version Control**: Major/Minor/Patch version bumping with option to keep current version number when updating.
 - **AI Optimization**: Built-in AI optimization feature, integrating with Aliyun Bailian or OpenAI-compatible large models to provide prompt optimization suggestions.
 - **Prompt Testing**: Built-in playground to test prompts with custom user messages, drag-and-drop reordering, and real-time streaming responses.
 - **Streaming Response**: Optimization results use streaming output (Server-Sent Events), supporting real-time preview and typewriter effect.
 - **Visual Editing**: Optimized prompts support secondary editing, previewing, and one-click copy/apply in a modal window.
 - **Rollback Capability**: Easily revert to previous versions of a prompt.
 - **Organization**: Use Tags and Categories to filter and manage prompts effectively.
-- **Import/Export**: Support for importing and exporting data in JSON format for backup or migration.
+- **Import/Export**: Support for importing and exporting data in JSON, CSV, and YAML formats for backup or migration.
+- **SDK Integration**: Dedicated API endpoint for seamless integration with applications.
 - **Integration Support**: Built-in tutorial and API documentation for integrating managed prompts into your applications.
+- **Multi-format Support**: Export and import prompts in various formats including JSON, CSV, and YAML.
 
 ## Tech Stack
 
@@ -121,10 +125,13 @@ The backend exposes a RESTful API at `http://localhost:8080/api`. Key endpoints 
 - `GET /api/projects/:id/prompts`: Get prompts for a specific project
 - `POST /api/projects/:id/prompts`: Create a new prompt
 - `GET /api/prompts/:id`: Get prompt details
-- `PUT /api/prompts/:id`: Update a prompt (creates a new version)
+- `PUT /api/prompts/:id`: Update a prompt (creates a new version or keeps current version)
 - `GET /api/prompts/:id/diff/:target_id`: Compare two prompt versions
 - `POST /api/optimize-prompt`: Call LLM for prompt optimization (supports streaming)
 - `POST /api/test-prompt`: Test prompt with conversation history (supports streaming)
+- `GET /api/projects/:id/sdk/prompt`: SDK integration endpoint to retrieve prompt content
 - `GET /api/settings`: Get system configuration
 - `POST /api/settings`: Update system configuration
+- `POST /api/export`: Export projects in JSON, CSV, or YAML format
+- `POST /api/import`: Import projects from exported data
 
