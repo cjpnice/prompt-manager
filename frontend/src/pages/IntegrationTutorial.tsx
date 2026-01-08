@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Code, Terminal } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export const IntegrationTutorial: React.FC = () => {
   const navigate = useNavigate();
@@ -187,35 +188,40 @@ getPromptContent('your_project_id', 'welcome_message').then(content => {
 `;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <div className="bg-gradient-to-r from-indigo-900 to-blue-900 text-white pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-indigo-200 hover:text-white transition-colors mb-6 group"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" />
-            返回首页
-          </button>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center text-indigo-200 hover:text-white transition-colors mb-6 group"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+                返回首页
+              </button>
 
-          <div className="flex items-center mb-4">
-            <div className="p-3 bg-white/10 rounded-xl mr-4 backdrop-blur-sm">
-              <BookOpen className="w-8 h-8 text-indigo-300" />
+              <div className="flex items-center mb-4">
+                <div className="p-3 bg-white/10 rounded-xl mr-4 backdrop-blur-sm">
+                  <BookOpen className="w-8 h-8 text-indigo-300" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">集成指南</h1>
+                  <p className="text-indigo-200 mt-2 text-lg">
+                    学习如何在您的项目中集成 Prompt Manager SDK
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">集成指南</h1>
-              <p className="text-indigo-200 mt-2 text-lg">
-                学习如何在您的项目中集成 Prompt Manager SDK
-              </p>
-            </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 w-full pb-12">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="p-8">
-            <article className="prose prose-indigo max-w-none">
+            <article className="prose prose-indigo dark:prose-invert max-w-none">
               <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
                 {markdownContent}
               </ReactMarkdown>

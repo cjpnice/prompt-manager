@@ -19,13 +19,13 @@ const DiffViewer: React.FC<DiffViewerProps> = ({ oldText, newText }) => {
 
       switch (operation) {
         case -1: // Deletion
-          className = 'bg-red-100 text-red-800 line-through';
+          className = 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 line-through';
           break;
         case 0: // Equality
-          className = 'text-gray-900';
+          className = 'text-gray-900 dark:text-gray-300';
           break;
         case 1: // Insertion
-          className = 'bg-green-100 text-green-800 font-medium';
+          className = 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 font-medium';
           break;
       }
 
@@ -56,18 +56,18 @@ const DiffViewer: React.FC<DiffViewerProps> = ({ oldText, newText }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
-      <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-        <h3 className="text-lg font-medium text-gray-900">差异对比</h3>
-        <div className="flex items-center space-x-4 text-sm text-gray-600">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">差异对比</h3>
+        <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
           <span>变更率: {calculateChangeRate()}%</span>
           <div className="flex items-center space-x-2">
             <span className="flex items-center">
-              <span className="w-3 h-3 bg-green-100 rounded mr-1"></span>
+              <span className="w-3 h-3 bg-green-100 dark:bg-green-900/30 rounded mr-1"></span>
               新增
             </span>
             <span className="flex items-center">
-              <span className="w-3 h-3 bg-red-100 rounded mr-1"></span>
+              <span className="w-3 h-3 bg-red-100 dark:bg-red-900/30 rounded mr-1"></span>
               删除
             </span>
           </div>

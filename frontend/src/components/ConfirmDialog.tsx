@@ -26,39 +26,39 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden transform transition-all scale-100 animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-700">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
-              <div className={`p-3 rounded-xl mr-4 ${type === 'danger' ? 'bg-red-50' : 'bg-yellow-50'}`}>
-                <AlertTriangle className={`w-6 h-6 ${type === 'danger' ? 'text-red-600' : 'text-yellow-600'}`} />
+              <div className={`p-3 rounded-xl mr-4 ${type === 'danger' ? 'bg-red-50 dark:bg-red-900/30' : 'bg-yellow-50 dark:bg-yellow-900/30'}`}>
+                <AlertTriangle className={`w-6 h-6 ${type === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
             </div>
-            <button 
-              onClick={onCancel} 
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-full"
+            <button
+              onClick={onCancel}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
-          <p className="text-gray-600 leading-relaxed mb-8 ml-1">
+
+          <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-8 ml-1">
             {message}
           </p>
-          
+
           <div className="flex justify-end space-x-3">
             <button
               onClick={onCancel}
-              className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 font-medium transition-colors"
+              className="px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
             >
               {cancelText}
             </button>
             <button
               onClick={onConfirm}
               className={`px-5 py-2.5 rounded-xl text-white font-medium shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 ${
-                type === 'danger' 
-                  ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600' 
+                type === 'danger'
+                  ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'
                   : 'bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-700 hover:to-yellow-600'
               }`}
             >

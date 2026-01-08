@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Plus, FolderOpen, Tag as TagIcon, Upload, Folder, BookOpen, Sparkles, Settings, TrendingUp, Clock, Zap, ArrowRight, LayoutGrid, List, Filter, MoreVertical, X } from 'lucide-react';
 import { ProjectCard } from '../components/ProjectCard';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { apiService } from '../services/api';
 import { Project } from '../types/models';
 import { useNavigate } from 'react-router-dom';
@@ -66,7 +67,7 @@ export const Home: React.FC = () => {
     project.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedProjects = React.useMemo(() => {
+  const sortedProjects = useMemo(() => {
     const sorted = [...filteredProjects];
     switch (sortBy) {
       case 'recent':
@@ -84,7 +85,7 @@ export const Home: React.FC = () => {
     }
   }, [filteredProjects, sortBy]);
 
-  const stats = React.useMemo(() => {
+  const stats = useMemo(() => {
     const totalProjects = projects.length;
     const totalPrompts = projects.reduce((sum, p) => {
       const uniquePromptNames = new Set(p.prompts?.map(prompt => prompt.name) || []);
@@ -118,9 +119,13 @@ export const Home: React.FC = () => {
   }, [projects]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950 flex flex-col">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white overflow-hidden">
+      <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-950 text-white overflow-hidden">
+        {/* Theme Toggle Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djZoLTZ2LTZoNnptMC0xMnY2aC02di02aDZ6bS0xMiAwdjZoLTZ2LTZoNnptMTItMTJ2NmgtNnYtNmg2em0tMTIgMHY2aC02di02aDZ6bS0xMiAwdjZoLTZ2LTZoNnptMTItMTJ2NmgtNnYtNmg2em0tMTIgMHY2aC02di02aDZ6bS0xMiAwdjZoLTZ2LTZoNnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-black/10"></div>
         
@@ -146,21 +151,21 @@ export const Home: React.FC = () => {
             {/* 搜索框 */}
             <div className="relative max-w-2xl mx-auto mb-12">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-2xl blur-xl opacity-40 group-hover:opacity-60 transition duration-300"></div>
-              <div className="relative flex items-center bg-white rounded-2xl shadow-2xl p-2">
+              <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-2">
                 <div className="pl-4 pr-3">
-                  <Search className="text-gray-400 w-6 h-6" />
+                  <Search className="text-gray-400 dark:text-gray-500 w-6 h-6" />
                 </div>
                 <input
                   type="text"
                   placeholder="搜索项目、描述或关键词..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1 px-2 py-4 text-gray-900 placeholder-gray-400 bg-transparent border-none focus:ring-0 text-lg"
+                  className="flex-1 px-2 py-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-transparent border-none focus:ring-0 text-lg"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="px-3 py-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="px-3 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -205,43 +210,43 @@ export const Home: React.FC = () => {
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
         
         {/* Quick Actions Toolbar */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-1 overflow-x-auto pb-2 sm:pb-0">
             <button
               onClick={() => navigate('/tags')}
-              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap group"
+              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium text-sm whitespace-nowrap group"
             >
               <TagIcon className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               标签管理
             </button>
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
             <button
               onClick={() => navigate('/categories')}
-              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap group"
+              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium text-sm whitespace-nowrap group"
             >
               <Folder className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               分类管理
             </button>
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
             <button
               onClick={() => navigate('/import-export')}
-              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap group"
+              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium text-sm whitespace-nowrap group"
             >
               <Upload className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               导入导出
             </button>
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
             <button
               onClick={() => navigate('/tutorial')}
-              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap group"
+              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium text-sm whitespace-nowrap group"
             >
               <BookOpen className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               集成教程
             </button>
-            <div className="h-6 w-px bg-gray-200 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
             <button
               onClick={() => navigate('/settings')}
-              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all font-medium text-sm whitespace-nowrap group"
+              className="flex items-center px-4 py-2.5 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 dark:hover:from-indigo-900/30 hover:to-purple-50 dark:hover:to-purple-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all font-medium text-sm whitespace-nowrap group"
             >
               <Settings className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
               系统设置
@@ -260,25 +265,25 @@ export const Home: React.FC = () => {
         {/* Project Grid Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <FolderOpen className="w-6 h-6 mr-3 text-indigo-600" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+              <FolderOpen className="w-6 h-6 mr-3 text-indigo-600 dark:text-indigo-400" />
               我的项目
-              <span className="ml-3 text-sm font-normal text-gray-500 bg-gradient-to-r from-indigo-50 to-purple-50 px-3 py-1 rounded-full border border-indigo-100">
+              <span className="ml-3 text-sm font-normal text-gray-500 dark:text-gray-400 bg-gradient-to-r from-indigo-50 dark:from-indigo-900/50 to-purple-50 dark:to-purple-900/50 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800">
                 {filteredProjects.length} 个项目
               </span>
             </h2>
-            <p className="text-sm text-gray-500 mt-1 ml-9">管理和组织您的所有提示词项目</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-9">管理和组织您的所有提示词项目</p>
           </div>
-          
+
           {/* View Options */}
           <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-1 shadow-sm">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-all ${
-                  viewMode === 'grid' 
-                    ? 'bg-indigo-100 text-indigo-600 shadow-sm' 
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                  viewMode === 'grid'
+                    ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 title="网格视图"
               >
@@ -287,21 +292,21 @@ export const Home: React.FC = () => {
               <button
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-lg transition-all ${
-                  viewMode === 'list' 
-                    ? 'bg-indigo-100 text-indigo-600 shadow-sm' 
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                  viewMode === 'list'
+                    ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
                 title="列表视图"
               >
                 <List className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="appearance-none bg-white border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer text-sm font-medium"
+                className="appearance-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 py-2 pl-4 pr-10 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer text-sm font-medium"
               >
                 <option value="recent">最近更新</option>
                 <option value="name">名称排序</option>
@@ -313,24 +318,24 @@ export const Home: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center h-64 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
+          <div className="flex justify-center items-center h-64 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
             <div className="flex flex-col items-center">
               <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 dark:border-indigo-900"></div>
                 <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-600 border-t-transparent absolute top-0 left-0"></div>
               </div>
-              <p className="text-gray-600 mt-4 font-medium">正在加载项目数据...</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 font-medium">正在加载项目数据...</p>
             </div>
           </div>
         ) : sortedProjects.length === 0 ? (
-          <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50">
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-              <FolderOpen className="h-12 w-12 text-indigo-400" />
+          <div className="text-center py-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <FolderOpen className="h-12 w-12 text-indigo-400 dark:text-indigo-500" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               {searchTerm ? '没有找到匹配的项目' : '还没有创建任何项目'}
             </h3>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto leading-relaxed">
+            <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
               {searchTerm ? '尝试使用不同的关键词搜索，或者清除搜索条件。' : '创建您的第一个项目，开始高效管理 AI 提示词版本。'}
             </p>
             {!searchTerm && (
@@ -394,10 +399,10 @@ export const Home: React.FC = () => {
       </div>
       
       {/* Footer */}
-      <footer className="mt-auto py-8 text-center text-gray-500 text-sm border-t border-gray-200/50 bg-white/50 backdrop-blur-sm">
+      <footer className="mt-auto py-8 text-center text-gray-500 dark:text-gray-400 text-sm border-t border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
         <div className="flex flex-col items-center space-y-2">
-          <p className="font-medium text-gray-600">© 2025 Prompt Manager. All rights reserved.</p>
-          <p className="text-xs text-gray-400">高效管理您的 AI 提示词资产</p>
+          <p className="font-medium text-gray-600 dark:text-gray-300">© 2025 Prompt Manager. All rights reserved.</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">高效管理您的 AI 提示词资产</p>
         </div>
       </footer>
     </div>

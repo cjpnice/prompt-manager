@@ -6,6 +6,7 @@ import { Project, Prompt } from '../types/models';
 import { CreatePromptModal } from '../components/CreatePromptModal';
 import { PromptCard } from '../components/PromptCard';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -201,19 +202,24 @@ export const ProjectDetail: React.FC = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-indigo-900 to-blue-900 text-white pb-24">
+      <div className="bg-gradient-to-r from-indigo-900 to-blue-900 dark:from-indigo-950 dark:to-blue-950 text-white pb-12 relative z-0">
+        {/* Theme Toggle Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={() => navigate('/')}
@@ -290,36 +296,36 @@ export const ProjectDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 w-full pb-12">
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full pb-12">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex items-center">
-            <div className="p-3 bg-blue-50 rounded-xl mr-4">
-              <FileText className="w-6 h-6 text-blue-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 flex items-center">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl mr-4">
+              <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">总提示词数</p>
-              <p className="text-2xl font-bold text-gray-900">{promptCount}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">总提示词数</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{promptCount}</p>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex items-center">
-            <div className="p-3 bg-green-50 rounded-xl mr-4">
-              <Grid className="w-6 h-6 text-green-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 flex items-center">
+            <div className="p-3 bg-green-50 dark:bg-green-900/30 rounded-xl mr-4">
+              <Grid className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">类别数</p>
-              <p className="text-2xl font-bold text-gray-900">{categoryCount}</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">类别数</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{categoryCount}</p>
             </div>
           </div>
-          
-          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 flex items-center">
-            <div className="p-3 bg-purple-50 rounded-xl mr-4">
-              <Calendar className="w-6 h-6 text-purple-600" />
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 flex items-center">
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl mr-4">
+              <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">创建时间</p>
-              <p className="text-lg font-bold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">创建时间</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">
                 {new Date(project.created_at).toLocaleDateString('zh-CN')}
               </p>
             </div>
@@ -327,25 +333,25 @@ export const ProjectDetail: React.FC = () => {
         </div>
 
         {/* Action Toolbar */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 p-4 mb-8 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1 min-w-[300px]">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="搜索版本、内容或标签..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 focus:bg-white transition-all"
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 transition-all"
               />
             </div>
-            
+
             {/* Category Filter Dropdown */}
             <div className="relative">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:bg-white transition-all cursor-pointer"
+                className="appearance-none bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-transparent hover:bg-white dark:hover:bg-gray-600 transition-all cursor-pointer text-gray-900 dark:text-white"
               >
                 {uniqueCategories.map(category => (
                   <option key={category} value={category}>
@@ -353,28 +359,28 @@ export const ProjectDetail: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 pointer-events-none" />
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
+            <div className="flex items-center space-x-1 bg-gray-50 dark:bg-gray-700 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
               <button
                 onClick={() => navigate('/import-export')}
-                className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-md transition-all shadow-sm"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-gray-600 rounded-md transition-all shadow-sm"
                 title="导入/导出数据"
               >
                 <ArrowRightLeft className="w-5 h-5" />
               </button>
-              <div className="w-px h-6 bg-gray-200"></div>
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
               <button
                 onClick={handleExportYAML}
-                className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-white rounded-md transition-all shadow-sm"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-gray-600 rounded-md transition-all shadow-sm"
                 title="导出为 YAML"
               >
                 <Download className="w-5 h-5" />
               </button>
-              <div className="w-px h-6 bg-gray-200"></div>
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-600"></div>
               <button
                 onClick={() => {
                   setConfirmDialog({
@@ -393,13 +399,13 @@ export const ProjectDetail: React.FC = () => {
                     },
                   });
                 }}
-                className="p-2 text-gray-500 hover:text-red-600 hover:bg-white rounded-md transition-all shadow-sm"
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-white dark:hover:bg-gray-600 rounded-md transition-all shadow-sm"
                 title="删除项目"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
-            
+
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all flex items-center font-medium"
@@ -412,19 +418,19 @@ export const ProjectDetail: React.FC = () => {
 
         {/* Prompts List */}
         {loading ? (
-          <div className="flex justify-center items-center h-64 bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-center items-center h-64 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-              <p className="text-gray-500">正在加载提示词...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mb-4"></div>
+              <p className="text-gray-500 dark:text-gray-400">正在加载提示词...</p>
             </div>
           </div>
         ) : filteredPrompts.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
-            <FileText className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <FileText className="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               {searchTerm ? '没有找到匹配的提示词版本' : '还没有提示词'}
             </h3>
-            <p className="text-gray-500 mb-8">
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
               {searchTerm ? '尝试使用不同的搜索词' : '创建您的第一个提示词版本来开始管理'}
             </p>
             {!searchTerm && (
@@ -440,26 +446,26 @@ export const ProjectDetail: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {groupedEntries.map(([category, items]) => (
-              <div key={category} className="border border-gray-200 rounded-xl bg-white overflow-hidden shadow-sm">
+              <div key={category} className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 overflow-hidden shadow-sm">
                 <button
                   onClick={() => toggleCategory(category)}
-                  className="w-full flex items-center justify-between px-6 py-4 bg-gray-50/50 hover:bg-gray-100/50 transition-colors border-b border-gray-100"
+                  className="w-full flex items-center justify-between px-6 py-4 bg-gray-50/50 dark:bg-gray-700/50 hover:bg-gray-100/50 dark:hover:bg-gray-600/50 transition-colors border-b border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center">
                     <div className={`mr-3 p-1 rounded-md transition-transform duration-200 ${collapsedCategories.has(category) ? '' : 'rotate-90'}`}>
-                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800">
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">
                       {category}
                     </h2>
-                    <span className="ml-3 px-2.5 py-0.5 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-500 shadow-sm">
+                    <span className="ml-3 px-2.5 py-0.5 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-500 dark:text-gray-400 shadow-sm">
                       {pickLatestByName(items).length}
                     </span>
                   </div>
                 </button>
-                
+
                 {!collapsedCategories.has(category) && (
-                  <div className="p-6 bg-white">
+                  <div className="p-6 bg-white dark:bg-gray-800">
                     <div className="grid grid-cols-1 gap-4">
                       {pickLatestByName(items).map((prompt) => (
                         <PromptCard

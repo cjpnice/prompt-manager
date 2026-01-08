@@ -59,42 +59,45 @@ export const VersionDetail: React.FC = () => {
 
   const markdownComponents = {
     h1: ({ node, ...props }: any) => (
-      <h1 {...props} className={clsx('text-2xl font-bold mt-4 mb-2', (props as any).className)} />
+      <h1 {...props} className={clsx('text-2xl font-bold mt-4 mb-2 text-gray-900 dark:text-white', (props as any).className)} />
     ),
     h2: ({ node, ...props }: any) => (
-      <h2 {...props} className={clsx('text-xl font-bold mt-3 mb-2', (props as any).className)} />
+      <h2 {...props} className={clsx('text-xl font-bold mt-3 mb-2 text-gray-900 dark:text-white', (props as any).className)} />
     ),
     h3: ({ node, ...props }: any) => (
-      <h3 {...props} className={clsx('text-lg font-semibold mt-2 mb-2', (props as any).className)} />
+      <h3 {...props} className={clsx('text-lg font-semibold mt-2 mb-2 text-gray-900 dark:text-white', (props as any).className)} />
     ),
     p: ({ node, ...props }: any) => (
-      <p {...props} className={clsx('my-2 leading-7 text-gray-800', (props as any).className)} />
+      <p {...props} className={clsx('my-2 leading-7 text-gray-800 dark:text-gray-200', (props as any).className)} />
     ),
     ul: ({ node, ...props }: any) => (
-      <ul {...props} className={clsx('list-disc ml-6 my-2', (props as any).className)} />
+      <ul {...props} className={clsx('list-disc ml-6 my-2 text-gray-800 dark:text-gray-200', (props as any).className)} />
     ),
     ol: ({ node, ...props }: any) => (
-      <ol {...props} className={clsx('list-decimal ml-6 my-2', (props as any).className)} />
+      <ol {...props} className={clsx('list-decimal ml-6 my-2 text-gray-800 dark:text-gray-200', (props as any).className)} />
     ),
     blockquote: ({ node, ...props }: any) => (
-      <blockquote {...props} className={clsx('border-l-4 pl-4 my-2 text-gray-700', (props as any).className)} />
+      <blockquote {...props} className={clsx('border-l-4 border-gray-300 dark:border-gray-600 pl-4 my-2 text-gray-700 dark:text-gray-300 italic', (props as any).className)} />
     ),
     hr: ({ node, ...props }: any) => (
-      <hr {...props} className={clsx('my-4 border-gray-200', (props as any).className)} />
+      <hr {...props} className={clsx('my-4 border-gray-200 dark:border-gray-700', (props as any).className)} />
     ),
     a: ({ node, ...props }: any) => (
-      <a {...props} target="_blank" rel="noopener noreferrer" />
+      <a {...props} className={clsx('text-indigo-600 dark:text-indigo-400 hover:underline', (props as any).className)} target="_blank" rel="noopener noreferrer" />
     ),
     div: ({ node, ...props }: any) => (
-      <div {...props} className={clsx('my-2', (props as any).className)} />
+      <div {...props} className={clsx('my-2 text-gray-800 dark:text-gray-200', (props as any).className)} />
     ),
     table: ({ node, ...props }: any) => (
       <div className="overflow-x-auto">
-        <table {...props} className={clsx('table-auto', (props as any).className)} />
+        <table {...props} className={clsx('table-auto border-collapse', (props as any).className)} />
       </div>
     ),
     code: ({ node, inline, className, children, ...props }: any) => (
-      <code className={clsx(inline ? '' : 'block', className)} {...props}>
+      <code className={clsx(
+        inline ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-1 py-0.5 rounded text-sm' : 'block',
+        className
+      )} {...props}>
         {children}
       </code>
     ),
@@ -333,10 +336,10 @@ export const VersionDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-indigo-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">加载中...</p>
         </div>
       </div>
     );
@@ -344,12 +347,12 @@ export const VersionDetail: React.FC = () => {
 
   if (!prompt) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">未找到版本信息</p>
+          <p className="text-gray-600 dark:text-gray-400">未找到版本信息</p>
           <button
             onClick={() => navigate(-1)}
-            className="mt-4 text-indigo-600 hover:text-indigo-800 transition-colors"
+            className="mt-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
           >
             返回上一页
           </button>
@@ -359,18 +362,18 @@ export const VersionDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white pb-24">
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 text-white pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center text-slate-300 hover:text-white transition-colors mb-6 group"
+            className="flex items-center text-slate-300 dark:text-slate-400 hover:text-white transition-colors mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" />
             返回上一页
           </button>
-          
+
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <div className="flex items-center mb-2">
@@ -387,12 +390,12 @@ export const VersionDetail: React.FC = () => {
                     >
                       {allVersions.length > 0 ? (
                         allVersions.map(v => (
-                          <option key={v.id} value={v.id} className="text-gray-900">
+                          <option key={v.id} value={v.id} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
                             v{v.version} {v.id === prompt.id ? '(当前)' : ''}
                           </option>
                         ))
                       ) : (
-                        <option value={prompt.id} className="text-gray-900">
+                        <option value={prompt.id} className="text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800">
                           v{prompt.version}
                         </option>
                       )}
@@ -444,8 +447,8 @@ export const VersionDetail: React.FC = () => {
               <button
                 onClick={handleCopyContent}
                 className={`px-4 py-2 rounded-lg flex items-center transition-colors backdrop-blur-sm border border-white/10 ${
-                  copySuccess 
-                    ? 'bg-green-500/20 text-green-200 border-green-500/30' 
+                  copySuccess
+                    ? 'bg-green-500/20 text-green-200 border-green-500/30'
                     : 'bg-white/10 hover:bg-white/20 text-white'
                 }`}
               >
@@ -485,56 +488,56 @@ export const VersionDetail: React.FC = () => {
 
       <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 w-full pb-12">
         {/* Stats & Meta Info */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="p-3 bg-blue-100 rounded-lg mr-4">
-                <GitCommit className="w-5 h-5 text-blue-600" />
+            <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
+                <GitCommit className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">当前版本</p>
-                <p className="text-lg font-bold text-gray-900">{prompt.version}</p>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">当前版本</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{prompt.version}</p>
               </div>
             </div>
-            
-            <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="p-3 bg-green-100 rounded-lg mr-4">
-                <Calendar className="w-5 h-5 text-green-600" />
+
+            <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg mr-4">
+                <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">创建时间</p>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">创建时间</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {formatDateTime(prompt.created_at)}
                 </p>
               </div>
             </div>
-            
-            <div className="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="p-3 bg-purple-100 rounded-lg mr-4">
-                <FileText className="w-5 h-5 text-purple-600" />
+
+            <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-100 dark:border-gray-600">
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
+                <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">内容长度</p>
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">内容长度</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {prompt.content.length} 字符
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-100 flex flex-wrap gap-6">
+          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-6">
             {prompt.category && (
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-2">分类:</span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">分类:</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium">
                   {prompt.category}
                 </span>
               </div>
             )}
-            
+
             {prompt.tags && prompt.tags.length > 0 && (
               <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-2">标签:</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">标签:</span>
                 <div className="flex flex-wrap gap-2">
                   {prompt.tags.map((tag) => (
                     <span
@@ -549,9 +552,9 @@ export const VersionDetail: React.FC = () => {
               </div>
             )}
           </div>
-          
+
           {prompt.description && (
-            <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-100 text-yellow-800 text-sm">
+            <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-100 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200 text-sm">
               <span className="font-semibold mr-2">版本描述:</span>
               {prompt.description}
             </div>
@@ -560,16 +563,16 @@ export const VersionDetail: React.FC = () => {
 
         {/* 差异对比区域 */}
         {!isEditing && viewMode === 'diff' && (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 mb-8">
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                <GitCompare className="w-5 h-5 mr-2 text-indigo-600" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                <GitCompare className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400" />
                 版本对比
               </h3>
               <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-500">对比对象:</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">对比对象:</span>
                 <select
-                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="px-3 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white"
                   value={previousVersion?.id || ''}
                   onChange={(e) => {
                     const target = allVersions.find(v => v.id === e.target.value) || null;
@@ -577,9 +580,9 @@ export const VersionDetail: React.FC = () => {
                     setViewMode('diff');
                   }}
                 >
-                  <option value="" disabled>请选择版本</option>
+                  <option value="" disabled className="bg-white dark:bg-gray-800">请选择版本</option>
                   {allVersions.filter(v => v.id !== prompt.id).map(v => (
-                    <option key={v.id} value={v.id}>
+                    <option key={v.id} value={v.id} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                       {v.name} · v{v.version}
                     </option>
                   ))}
@@ -587,11 +590,11 @@ export const VersionDetail: React.FC = () => {
               </div>
             </div>
             {previousVersion ? (
-              <div className="rounded-lg overflow-hidden border border-gray-200">
+              <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                 <DiffViewer oldText={previousVersion.content} newText={prompt.content} />
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 暂无可对比版本，请在上方选择对比版本
               </div>
             )}
@@ -600,13 +603,13 @@ export const VersionDetail: React.FC = () => {
 
         {/* 视图模式切换 */}
         {!isEditing && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 mb-6 inline-flex">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-2 mb-6 inline-flex">
             <button
               onClick={() => setViewMode('split')}
               className={`px-4 py-2 rounded-lg flex items-center transition-all text-sm font-medium ${
                 viewMode === 'split'
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <ArrowRightLeft className="w-4 h-4 mr-2" />
@@ -616,8 +619,8 @@ export const VersionDetail: React.FC = () => {
               onClick={() => setViewMode('preview')}
               className={`px-4 py-2 rounded-lg flex items-center transition-all text-sm font-medium ${
                 viewMode === 'preview'
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Eye className="w-4 h-4 mr-2" />
@@ -627,8 +630,8 @@ export const VersionDetail: React.FC = () => {
               onClick={() => setViewMode('source')}
               className={`px-4 py-2 rounded-lg flex items-center transition-all text-sm font-medium ${
                 viewMode === 'source'
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Code className="w-4 h-4 mr-2" />
@@ -638,8 +641,8 @@ export const VersionDetail: React.FC = () => {
               onClick={() => setViewMode('diff')}
               className={`px-4 py-2 rounded-lg flex items-center transition-all text-sm font-medium ${
                 viewMode === 'diff'
-                  ? 'bg-indigo-50 text-indigo-700 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <GitCompare className="w-4 h-4 mr-2" />
@@ -650,20 +653,20 @@ export const VersionDetail: React.FC = () => {
 
         {/* 编辑区域 */}
         {isEditing && (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8 animate-fade-in">
-            <div className="mb-6 pb-4 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                <Edit className="w-5 h-5 mr-2 text-indigo-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 mb-8 animate-fade-in">
+            <div className="mb-6 pb-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+                <Edit className="w-5 h-5 mr-2 text-indigo-600 dark:text-indigo-400" />
                 编辑提示词
               </h3>
             </div>
             <div className="space-y-8">
               {/* Metadata Panel */}
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
                 <div className="grid grid-cols-1 gap-6">
                   {/* Name Input */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                       <FileText className="w-4 h-4 mr-2 text-indigo-500" />
                       名称
                     </label>
@@ -671,19 +674,19 @@ export const VersionDetail: React.FC = () => {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                       placeholder="输入提示词名称"
                     />
                   </div>
                   {/* Category & Tags Row */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                         <Grid className="w-4 h-4 mr-2 text-indigo-500" />
                         分类
                       </label>
                       {allCategories.length === 0 ? (
-                        <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-200 inline-block">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 inline-block">
                           暂无可用分类
                         </div>
                       ) : (
@@ -694,9 +697,9 @@ export const VersionDetail: React.FC = () => {
                               type="button"
                               onClick={() => setEditCategory(cat.name)}
                               className={`px-4 py-1.5 text-sm rounded-lg transition-all shadow-sm ${
-                                editCategory === cat.name 
-                                  ? 'text-white ring-2 ring-offset-1 ring-indigo-500' 
-                                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                editCategory === cat.name
+                                  ? 'text-white ring-2 ring-offset-1 ring-indigo-500 dark:ring-offset-gray-800'
+                                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
                               }`}
                               style={{ backgroundColor: editCategory === cat.name ? cat.color : undefined }}
                             >
@@ -708,12 +711,12 @@ export const VersionDetail: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                         <TagIcon className="w-4 h-4 mr-2 text-indigo-500" />
                         标签
                       </label>
                       {allTags.length === 0 ? (
-                        <div className="text-sm text-gray-500 bg-white px-4 py-2 rounded-lg border border-gray-200 inline-block">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 inline-block">
                           暂无可用标签
                         </div>
                       ) : (
@@ -732,11 +735,11 @@ export const VersionDetail: React.FC = () => {
                                   }
                                 }}
                                 className={`px-4 py-1.5 text-sm rounded-lg transition-all shadow-sm ${
-                                  isSelected 
-                                    ? 'text-white ring-2 ring-offset-1 ring-indigo-500' 
-                                    : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                  isSelected
+                                    ? 'text-white ring-2 ring-offset-1 ring-indigo-500 dark:ring-offset-gray-800'
+                                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
                                 }`}
-                                style={{ 
+                                style={{
                                   backgroundColor: isSelected ? tag.color : undefined
                                 }}
                               >
@@ -751,7 +754,7 @@ export const VersionDetail: React.FC = () => {
 
                   {/* Description Row */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                       <FileText className="w-4 h-4 mr-2 text-indigo-500" />
                       版本描述
                     </label>
@@ -759,21 +762,21 @@ export const VersionDetail: React.FC = () => {
                       type="text"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white shadow-sm"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white dark:bg-gray-800 shadow-sm text-gray-900 dark:text-white placeholder-gray-400"
                       placeholder="简要描述本次修改..."
                     />
                   </div>
                 </div>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center">
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
                   <Code className="w-4 h-4 mr-2 text-indigo-500" />
                   提示词内容 <span className="text-red-500 ml-1">*</span>
                 </label>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 border border-gray-200 dark:border-gray-600 rounded-xl p-4 bg-gray-50/50 dark:bg-gray-700/50">
                   <div className="flex flex-col h-[600px]">
-                    <div className="mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center justify-between">
+                    <div className="mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center justify-between">
                       <div className="flex items-center">
                         <Code className="w-3 h-3 mr-1" /> 源码编辑
                       </div>
@@ -781,7 +784,7 @@ export const VersionDetail: React.FC = () => {
                         type="button"
                         onClick={handleOptimize}
                         disabled={isOptimizing || !editContent.trim()}
-                        className="flex items-center text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors disabled:opacity-50"
+                        className="flex items-center text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors disabled:opacity-50"
                       >
                         <Wand2 className="w-3 h-3 mr-1" />
                         {isOptimizing ? '优化中...' : 'AI 优化'}
@@ -791,15 +794,15 @@ export const VersionDetail: React.FC = () => {
                       rows={20}
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full flex-1 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none font-mono text-sm bg-white"
+                      className="w-full flex-1 p-4 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none font-mono text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400"
                       placeholder="在此输入 Markdown 内容..."
                     />
                   </div>
                   <div className="flex flex-col h-[600px]">
-                    <div className="mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center">
+                    <div className="mb-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center">
                       <Eye className="w-3 h-3 mr-1" /> 实时预览
                     </div>
-                    <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg p-6 bg-white prose prose-sm max-w-none">
+                    <div className="flex-1 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-6 bg-white dark:bg-gray-800 prose prose-sm max-w-none dark:prose-invert">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
                         rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
@@ -811,11 +814,11 @@ export const VersionDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div className="flex items-center gap-6">
-                  <span className="text-sm font-medium text-gray-700">升级类型:</span>
-                  <label className="flex items-center text-sm text-gray-600 cursor-pointer">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">升级类型:</span>
+                  <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                     <input
                       type="radio"
                       className="mr-2 text-indigo-600 focus:ring-indigo-500"
@@ -825,7 +828,7 @@ export const VersionDetail: React.FC = () => {
                     />
                     小幅修正 (Patch)
                   </label>
-                  <label className="flex items-center text-sm text-gray-600 cursor-pointer">
+                  <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
                     <input
                       type="radio"
                       className="mr-2 text-indigo-600 focus:ring-indigo-500"
@@ -835,9 +838,9 @@ export const VersionDetail: React.FC = () => {
                     />
                     大版本更新 (Major)
                   </label>
-                  
+
                   {/* 新增保持版本号选项 */}
-                  <label className="flex items-center text-sm text-gray-600 cursor-pointer ml-6">
+                  <label className="flex items-center text-sm text-gray-600 dark:text-gray-400 cursor-pointer ml-6">
                     <input
                       type="checkbox"
                       className="mr-2 text-indigo-600 focus:ring-indigo-500"
@@ -847,11 +850,11 @@ export const VersionDetail: React.FC = () => {
                     保持当前版本号不变
                   </label>
                 </div>
-                
+
                 <div className="flex space-x-3">
                   <button
                     onClick={handleCancelEdit}
-                    className="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                    className="px-6 py-2.5 border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
                   >
                     取消
                   </button>
@@ -870,26 +873,26 @@ export const VersionDetail: React.FC = () => {
 
         {/* 内容显示区域 */}
         {!isEditing && (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
             {viewMode === 'split' && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 divide-x divide-gray-100">
+              <div className="grid grid-cols-1 lg:grid-cols-2 divide-x divide-gray-100 dark:divide-gray-700">
                 <div className="p-6 flex flex-col">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center">
                     <Code className="w-4 h-4 mr-2" />
                     Markdown 源码
                   </h3>
-                  <div className="flex-1 bg-gray-50 rounded-xl p-6 border border-gray-200 font-mono text-sm leading-relaxed overflow-x-auto">
-                    <pre className="whitespace-pre-wrap text-gray-800">
+                  <div className="flex-1 bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 font-mono text-sm leading-relaxed overflow-x-auto">
+                    <pre className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">
                       {prompt.content}
                     </pre>
                   </div>
                 </div>
                 <div className="p-6 flex flex-col">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
+                  <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4 flex items-center">
                     <Eye className="w-4 h-4 mr-2" />
                     渲染效果
                   </h3>
-                  <div className="flex-1 rounded-xl p-6 border border-gray-200 bg-white prose prose-indigo max-w-none">
+                  <div className="flex-1 rounded-xl p-6 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 prose prose-indigo max-w-none dark:prose-invert">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
                       rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}
@@ -901,20 +904,20 @@ export const VersionDetail: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {viewMode === 'source' && (
-              <div className="p-8 bg-gray-50/30">
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 shadow-inner">
-                  <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">
+              <div className="p-8 bg-gray-50/30 dark:bg-gray-900/30">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-inner">
+                  <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono leading-relaxed">
                     {prompt.content}
                   </pre>
                 </div>
               </div>
             )}
-            
+
             {viewMode === 'preview' && (
               <div className="p-10">
-                <div className="prose prose-indigo max-w-none mx-auto">
+                <div className="prose prose-indigo max-w-none mx-auto dark:prose-invert">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks, remarkMath]}
                     rehypePlugins={[rehypeRaw, rehypeKatex, rehypeHighlight]}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, Download, FileText, AlertCircle, CheckCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 interface ImportResult {
   success: boolean;
@@ -99,44 +100,49 @@ const ImportExport: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-purple-200 hover:text-white transition-colors mb-6 group"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" />
-            返回首页
-          </button>
-          
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div>
-              <div className="flex items-center mb-2">
-                <div className="p-2 bg-white/10 rounded-lg mr-3 backdrop-blur-sm">
-                  <RefreshCw className="w-6 h-6 text-purple-300" />
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center text-purple-200 hover:text-white transition-colors mb-6 group"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+                返回首页
+              </button>
+
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                <div>
+                  <div className="flex items-center mb-2">
+                    <div className="p-2 bg-white/10 rounded-lg mr-3 backdrop-blur-sm">
+                      <RefreshCw className="w-6 h-6 text-purple-300" />
+                    </div>
+                    <h1 className="text-3xl font-bold">导入导出</h1>
+                  </div>
+                  <p className="text-purple-200 max-w-2xl text-lg leading-relaxed ml-12">
+                    批量导入或导出您的提示词数据，轻松实现数据迁移与备份。
+                  </p>
                 </div>
-                <h1 className="text-3xl font-bold">导入导出</h1>
               </div>
-              <p className="text-purple-200 max-w-2xl text-lg leading-relaxed ml-12">
-                批量导入或导出您的提示词数据，轻松实现数据迁移与备份。
-              </p>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
 
       <div className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 w-full pb-12">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="border-b border-gray-100 dark:border-gray-700">
             <nav className="flex">
               <button
                 onClick={() => setActiveTab('import')}
                 className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-colors ${
                   activeTab === 'import'
-                    ? 'border-b-2 border-purple-600 text-purple-700 bg-purple-50/50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/30'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 <div className="flex items-center justify-center">
@@ -148,8 +154,8 @@ const ImportExport: React.FC = () => {
                 onClick={() => setActiveTab('export')}
                 className={`flex-1 py-4 px-6 text-center font-medium text-sm transition-colors ${
                   activeTab === 'export'
-                    ? 'border-b-2 border-purple-600 text-purple-700 bg-purple-50/50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'border-b-2 border-purple-600 text-purple-700 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/30'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 <div className="flex items-center justify-center">
@@ -163,12 +169,12 @@ const ImportExport: React.FC = () => {
           <div className="p-8">
             {activeTab === 'import' && (
               <div className="space-y-8">
-                <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-5">
+                <div className="bg-blue-50/80 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 rounded-xl p-5">
                   <div className="flex items-start">
-                    <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <div className="text-sm text-blue-800">
+                    <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
                       <p className="font-bold mb-2">导入说明：</p>
-                      <ul className="space-y-1.5 text-blue-700 list-disc list-inside">
+                      <ul className="space-y-1.5 text-blue-700 dark:text-blue-300 list-disc list-inside">
                         <li>支持 JSON 和 CSV 格式文件</li>
                         <li>导入时会自动检测重复项目</li>
                         <li>已存在的项目可以选择跳过或更新</li>
@@ -178,13 +184,13 @@ const ImportExport: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-purple-400 hover:bg-purple-50/30 transition-all group">
-                  <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white group-hover:shadow-sm transition-all">
-                    <FileText className="w-8 h-8 text-gray-400 group-hover:text-purple-500 transition-colors" />
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-10 text-center hover:border-purple-400 dark:hover:border-purple-600 hover:bg-purple-50/30 dark:hover:bg-purple-900/20 transition-all group">
+                  <div className="bg-gray-100 dark:bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-white dark:group-hover:bg-gray-600 group-hover:shadow-sm transition-all">
+                    <FileText className="w-8 h-8 text-gray-400 dark:text-gray-500 group-hover:text-purple-500 transition-colors" />
                   </div>
-                  <p className="text-gray-900 font-medium mb-2">拖拽文件到此处，或点击选择文件</p>
-                  <p className="text-gray-500 text-sm mb-6">支持 .json, .csv 格式</p>
-                  
+                  <p className="text-gray-900 dark:text-white font-medium mb-2">拖拽文件到此处，或点击选择文件</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">支持 .json, .csv 格式</p>
+
                   <input
                     type="file"
                     accept=".json,.csv"
@@ -194,13 +200,13 @@ const ImportExport: React.FC = () => {
                   />
                   <label
                     htmlFor="import-file"
-                    className="inline-flex items-center px-6 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 cursor-pointer transition-all shadow-sm hover:shadow font-medium"
+                    className="inline-flex items-center px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg cursor-pointer transition-all shadow-sm hover:shadow font-medium"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     选择文件
                   </label>
                   {importFile && (
-                    <div className="mt-6 flex items-center justify-center text-sm text-purple-700 bg-purple-50 py-2 px-4 rounded-lg inline-block">
+                    <div className="mt-6 flex items-center justify-center text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 py-2 px-4 rounded-lg inline-block">
                       <FileText className="w-4 h-4 mr-2 inline" />
                       已选择: <span className="font-semibold">{importFile.name}</span>
                     </div>
@@ -212,7 +218,7 @@ const ImportExport: React.FC = () => {
                     <button
                       onClick={handleImport}
                       disabled={loading}
-                      className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium text-lg flex items-center"
+                      className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium text-lg flex items-center"
                     >
                       {loading ? (
                         <>
@@ -231,30 +237,30 @@ const ImportExport: React.FC = () => {
 
                 {importResult && (
                   <div className={`border rounded-xl p-5 animate-fade-in ${
-                    importResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                    importResult.success ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
                   }`}>
                     <div className="flex items-start">
                       {importResult.success ? (
-                        <CheckCircle className="w-6 h-6 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0" />
                       ) : (
-                        <AlertCircle className="w-6 h-6 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0" />
                       )}
                       <div className="flex-1">
                         <p className={`font-bold text-lg mb-2 ${
-                          importResult.success ? 'text-green-800' : 'text-red-800'
+                          importResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
                         }`}>
                           {importResult.message}
                         </p>
                         {importResult.success && (
-                          <div className="mt-2 text-sm text-green-700 bg-white/50 rounded-lg p-3 inline-block border border-green-100">
+                          <div className="mt-2 text-sm text-green-700 dark:text-green-300 bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 inline-block border border-green-100 dark:border-green-800">
                             <p className="font-medium">成功导入: {importResult.imported} 个项目</p>
-                            <p className="text-green-600">跳过重复: {importResult.skipped} 个项目</p>
+                            <p className="text-green-600 dark:text-green-400">跳过重复: {importResult.skipped} 个项目</p>
                           </div>
                         )}
                         {importResult.errors.length > 0 && (
                           <div className="mt-3">
-                            <p className="text-sm font-bold text-red-800 mb-1">错误详情：</p>
-                            <ul className="text-sm text-red-700 space-y-1 list-disc list-inside bg-white/50 rounded-lg p-3 border border-red-100">
+                            <p className="text-sm font-bold text-red-800 dark:text-red-200 mb-1">错误详情：</p>
+                            <ul className="text-sm text-red-700 dark:text-red-300 space-y-1 list-disc list-inside bg-white/50 dark:bg-gray-800/50 rounded-lg p-3 border border-red-100 dark:border-red-800">
                               {importResult.errors.map((error, index) => (
                                 <li key={index}>{error}</li>
                               ))}
@@ -270,12 +276,12 @@ const ImportExport: React.FC = () => {
 
             {activeTab === 'export' && (
               <div className="space-y-8">
-                <div className="bg-green-50/80 border border-green-100 rounded-xl p-5">
+                <div className="bg-green-50/80 dark:bg-green-900/30 border border-green-100 dark:border-green-800 rounded-xl p-5">
                   <div className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
-                    <div className="text-sm text-green-800">
+                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3 flex-shrink-0" />
+                    <div className="text-sm text-green-800 dark:text-green-200">
                       <p className="font-bold mb-2">导出说明：</p>
-                      <ul className="space-y-1.5 text-green-700 list-disc list-inside">
+                      <ul className="space-y-1.5 text-green-700 dark:text-green-300 list-disc list-inside">
                         <li>支持 JSON 和 CSV 格式导出</li>
                         <li>JSON 格式包含完整的项目结构</li>
                         <li>CSV 格式适合在表格软件中查看</li>
@@ -286,15 +292,15 @@ const ImportExport: React.FC = () => {
                 </div>
 
                 <div className="space-y-6 max-w-lg mx-auto">
-                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <label className="block text-sm font-bold text-gray-700 mb-4">
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4">
                       导出格式
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <label className={`flex items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${
-                        exportFormat === 'json' 
-                          ? 'border-purple-500 bg-purple-50 text-purple-700 ring-1 ring-purple-500' 
-                          : 'border-gray-200 hover:border-purple-200 hover:bg-gray-50'
+                        exportFormat === 'json'
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-purple-200 dark:hover:border-purple-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}>
                         <input
                           type="radio"
@@ -306,9 +312,9 @@ const ImportExport: React.FC = () => {
                         <span className="font-medium">JSON 格式</span>
                       </label>
                       <label className={`flex items-center justify-center p-4 border rounded-xl cursor-pointer transition-all ${
-                        exportFormat === 'csv' 
-                          ? 'border-purple-500 bg-purple-50 text-purple-700 ring-1 ring-purple-500' 
-                          : 'border-gray-200 hover:border-purple-200 hover:bg-gray-50'
+                        exportFormat === 'csv'
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-purple-200 dark:hover:border-purple-700 hover:bg-gray-50 dark:hover:bg-gray-700'
                       }`}>
                         <input
                           type="radio"
@@ -322,14 +328,14 @@ const ImportExport: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                    <label className="block text-sm font-bold text-gray-700 mb-4">
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4">
                       导出范围
                     </label>
                     <select
                       value={exportProject}
                       onChange={(e) => setExportProject(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     >
                       <option value="all">所有项目</option>
                       {projects.map((project) => (
@@ -345,7 +351,7 @@ const ImportExport: React.FC = () => {
                   <button
                     onClick={handleExport}
                     disabled={loading}
-                    className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium text-lg flex items-center"
+                    className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg font-medium text-lg flex items-center"
                   >
                     {loading ? (
                       <>

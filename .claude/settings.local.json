@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "mcp__zread__get_repo_structure",
-      "mcp__zread__read_file"
+      "mcp__zread__read_file",
+      "Bash(git checkout:*)",
+      "Bash(npm run build:*)",
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(awk:*)",
+      "Bash(grep:*)"
     ]
   }
 }
