@@ -70,7 +70,11 @@ export const Home: React.FC = () => {
     const sorted = [...filteredProjects];
     switch (sortBy) {
       case 'recent':
-        return sorted.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.updated_at).getTime();
+          const dateB = new Date(b.updated_at).getTime();
+          return dateB - dateA;
+        });
       case 'name':
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
       case 'prompts':
@@ -88,24 +92,26 @@ export const Home: React.FC = () => {
     }, 0);
 
     // 统计7日内更新的提示词数（相同提示词不同版本算一个）
-    const promptMap = new Map<string, { createdAt: string }>(); // promptName -> latest prompt info
+    const promptMap = new Map<string, { createdAt: number }>(); // promptName -> latest prompt timestamp
 
     projects.forEach(project => {
       project.prompts?.forEach(prompt => {
         const existing = promptMap.get(prompt.name);
+        const promptTimestamp = new Date(prompt.created_at).getTime();
         // 如果该提示词名称不存在，或者当前版本更新，则更新记录
-        if (!existing || new Date(prompt.created_at) > new Date(existing.createdAt)) {
+        if (!existing || promptTimestamp > existing.createdAt) {
           promptMap.set(prompt.name, {
-            createdAt: prompt.created_at
+            createdAt: promptTimestamp
           });
         }
       });
     });
 
     // 计算这些去重后的提示词中，有多少是在7天内创建/更新的
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
     const recentPrompts = Array.from(promptMap.values()).filter(prompt => {
-      const daysSinceUpdate = (Date.now() - new Date(prompt.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      return daysSinceUpdate <= 7;
+      return (now - prompt.createdAt) <= sevenDaysInMs;
     }).length;
 
     return { totalProjects, totalPrompts, recentPrompts };

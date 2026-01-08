@@ -26,7 +26,7 @@ export interface Tag {
   id: string;
   name: string;
   color: string;
-  created_at: string;
+  created_at: string; // Ensure this is always provided
 }
 
 export interface PromptHistory {
