@@ -1,138 +1,259 @@
-# Prompt Manager
+# Prompt Manager: 让你的 AI 提示词管理更专业
+[English](./README_EN.md) | **中文文档**
+> 在 AI 时代,提示词就是生产力。如何高效管理、版本化和优化这些宝贵的提示词资产?让我们来认识一下 Prompt Manager —— 你的专业提示词管理平台。
 
-[中文文档](./README_zh.md) | **English**
+![首页界面](./images/image-0.png)
 
-Prompt Manager is a full-stack application designed to help developers and prompt engineers manage, version, and organize their LLM prompts efficiently. It provides a centralized interface for creating projects, managing prompt versions, comparing changes, and organizing prompts with tags and categories.
-![alt text](image.png)
-![alt text](image-1.png)
-![alt text](image-2.png)
-![alt text](image-3.png)
-![alt text](image-4.png)
+## 前言:提示词管理的困境
 
-## Features
+随着 ChatGPT、Claude 等大语言模型的普及,提示词工程已成为 AI 应用开发的核心技能。但作为开发者和提示词工程师,你是否也面临这些困扰:
 
-- **Project Management**: Organize your prompts into distinct projects.
-- **Prompt Versioning**: Automatically track changes to your prompts with version control.
-- **Diff Viewer**: Visually compare different versions of a prompt to see what changed.
-- **Version Comparison Mode**: Multi-version comparison in test prompt playground for side-by-side testing.
-- **Advanced Version Control**: Major/Minor/Patch version bumping with option to keep current version number when updating.
-- **AI Optimization**: Built-in AI optimization feature, integrating with Aliyun Bailian or OpenAI-compatible large models to provide prompt optimization suggestions.
-- **Prompt Testing**: Built-in playground to test prompts with custom user messages, drag-and-drop reordering, and real-time streaming responses.
-- **Streaming Response**: Optimization results use streaming output (Server-Sent Events), supporting real-time preview and typewriter effect.
-- **Visual Editing**: Optimized prompts support secondary editing, previewing, and one-click copy/apply in a modal window.
-- **Rollback Capability**: Easily revert to previous versions of a prompt.
-- **Organization**: Use Tags and Categories to filter and manage prompts effectively.
-- **Import/Export**: Support for importing and exporting data in JSON, CSV, and YAML formats for backup or migration.
-- **SDK Integration**: Dedicated API endpoint for seamless integration with applications.
-- **Integration Support**: Built-in tutorial and API documentation for integrating managed prompts into your applications.
-- **Multi-format Support**: Export and import prompts in various formats including JSON, CSV, and YAML.
+- 💾 **提示词散落各处**: 保存在各种文档、笔记、代码注释中,难以统一管理
+- 🔄 **版本混乱**: 不知道哪个是最新版本,改坏了想回退却找不到历史版本
+- 🔍 **难以对比**: 不清楚不同版本之间到底改了什么
+- 🧪 **测试麻烦**: 想测试不同版本的效果,需要反复切换和复制粘贴
+- 🤖 **优化困难**: 不知道如何让提示词更有效,依赖人工试错
 
-## Tech Stack
+**Prompt Manager** 正是为了解决这些痛点而生的全栈提示词管理平台。它将专业的版本控制理念引入提示词管理,让 AI 开发更加高效、专业。
 
-### Backend
-- **Language**: Go (Golang)
-- **Framework**: Gin Web Framework
-- **Database**: MySQL (default), SQLite  supports GORM compatible databases
-- **ORM**: GORM
 
-### Frontend
-- **Framework**: React
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **Routing**: React Router
-- **Icons**: Lucide React
+## 核心功能亮点
 
-## Project Structure
+### 1️⃣ 项目化管理:井井有条
+
+将提示词按项目分类,每个项目独立管理。无论是个人使用还是团队协作,都能轻松组织:
+- 创建多个项目,对应不同业务场景
+- 使用标签(Tag)和分类(Category)快速筛选
+- 直观的卡片式或列表式视图切换
+- 支持项目排序和搜索,快速定位
+
+![项目管理界面](./images/image-5.png)
+
+### 2️⃣ 专业版本控制:像管理代码一样管理提示词
+
+这是 Prompt Manager 的核心竞争力:
+
+**自动版本追踪**
+- 每次修改自动创建新版本,无需手动备份
+- 支持语义化版本号(Major/Minor/Patch)
+- 更新时可选择保持当前版本号,灵活控制版本策略
+
+**可视化差异对比**
+- 类似 Git 的 Diff Viewer,清晰展示版本间的变更
+- 支持行级别的差异高亮
+- 快速了解提示词的演进历程
+
+**一键回滚**
+- 效果不满意?一键恢复到任意历史版本
+- 保留完整的版本历史,随时可追溯
+- 支持删除不需要的版本,保持版本列表整洁
+
+![版本对比](./images/image-6.png)
+### 3️⃣ AI 智能优化:让提示词更出色
+
+内置 AI 优化功能,让你的提示词持续进化:
+- 对接阿里云百炼或任何 OpenAI 兼容的大模型
+- 流式输出优化建议,实时预览打字机效果
+- 优化后的提示词支持在弹窗中二次编辑
+- 查看优化前后的对比,一键应用或丢弃
+
+![版本对比界面](./images/image-2.png)
+
+### 4️⃣ 强大的测试环境 (Playground)
+
+在发布前充分测试你的提示词:
+
+**版本对比模式**
+- 多版本并行测试,直观对比不同版本的效果
+- 快速切换版本,无需重新输入测试数据
+- 找出最优提示词版本
+
+![测试环境界面](./images/image-4.png)
+
+**灵活的对话测试**
+- 自定义消息列表,模拟真实对话场景
+- 拖拽排序调整消息顺序
+- 支持系统提示词和用户消息的组合
+- 实时显示 Token 消耗,成本心中有数
+
+**流式响应体验**
+- Server-Sent Events 实现实时流式输出
+- 打字机效果,还原真实 AI 交互体验
+- 支持 Markdown 渲染、代码高亮
+- KaTeX 公式支持,技术文档也能完美展示
+
+![测试环境界面](./images/image-3.png)
+
+
+### 5️⃣ 数据导入导出与 SDK 集成
+
+**多格式数据管理**
+- 支持 JSON、CSV、YAML 三种格式导出
+- 方便的数据备份和迁移
+- 跨平台数据互通,不用担心供应商锁定
+
+![导入导出](./images/image-7.png)
+
+**SDK 友好的 API**
+- 专用的集成端点,轻松接入你的应用
+- RESTful API 设计,简单易用
+- 内置 API 文档和集成教程
+- 支持版本化调用,灰度发布更轻松
+
+![SDK 集成](./images/image-8.png)
+
+
+## 技术架构:现代化的全栈方案
+
+### 后端:高性能 Go 服务
 
 ```
-prompt-manager/
-├── backend/            # Go backend application
-│   ├── config/         # Configuration loading
-│   ├── database/       # Database initialization
-│   ├── handlers/       # HTTP request handlers
-│   ├── middleware/     # HTTP middleware
-│   ├── models/         # Data models
-│   ├── services/       # Business logic
-│   └── main.go         # Entry point
-├── frontend/           # React frontend application
-│   ├── public/         # Static assets
-│   └── src/            # Source code
-│       ├── components/ # Reusable UI components
-│       ├── pages/      # Application pages
-│       ├── services/   # API client
-│       └── types/      # TypeScript type definitions
-└── README.md           # Project documentation
+语言: Go 1.18+
+框架: Gin Web Framework
+ORM: GORM
+数据库: MySQL(默认) / SQLite / 所有 GORM 兼容数据库
 ```
 
-## Getting Started
+选择 Go 的理由:
+- **高性能**: 并发处理能力强,响应速度快
+- **简洁**: 单一二进制文件,部署简单
+- **跨平台**: 一次编译,到处运行
+- **流式支持**: 天生支持 SSE,实时交互无压力
 
-### Prerequisites
+### 前端:现代化 React 应用
 
-- **Go**: Version 1.18 or higher
-- **Node.js**: Version 16 or higher
-- **npm** or **yarn**
+```
+框架: React 18
+构建工具: Vite 6
+样式: Tailwind CSS
+状态管理: Zustand
+路由: React Router v7
+UI 组件: Lucide React 图标库
+```
 
-### Installation & Running
+技术亮点:
+- **TypeScript**: 类型安全,开发体验优秀
+- **Vite 构建**: 极速热更新,开发效率高
+- **Zustand**: 轻量级状态管理,代码简洁
+- **深色模式**: 护眼的暗色主题,长时间使用不疲劳
+- **响应式设计**: 完美适配桌面和移动设备
 
-#### 1. Backend Setup
 
-Navigate to the backend directory and install dependencies:
+
+## 快速上手:5 分钟部署
+
+### 前置要求
+
+- **Go**: 1.18 或更高版本
+- **Node.js**: 16 或更高版本
+- **npm** 或 **yarn**
+
+### 安装步骤
+
+#### 1. 克隆项目
+
+```bash
+git clone https://github.com/cjpnice/prompt-manager.git
+cd prompt-manager
+```
+
+#### 2. 启动后端
 
 ```bash
 cd backend
+
+# 安装依赖
 go mod download
-```
 
-Create a `.env` file in the `backend` directory (optional, uses defaults if omitted):
-
-```env
+# 创建配置文件(可选,使用默认值)
+cat > .env << EOF
 SERVER_PORT=8080
 DB_TYPE=sqlite
 DB_NAME=prompt_manager.db
-```
+EOF
 
-Start the backend server:
-
-```bash
+# 启动服务
 go run main.go
 ```
 
-The backend server will start on `http://localhost:8080`.
+后端服务将在 `http://localhost:8080` 启动。
 
-#### 2. Frontend Setup
-
-Navigate to the frontend directory and install dependencies:
+#### 3. 启动前端
 
 ```bash
 cd frontend
+
+# 安装依赖
 npm install
-```
 
-Start the development server:
-
-```bash
+# 启动开发服务器
 npm run dev
 ```
 
-The frontend application will typically start on `http://localhost:5173`.
+前端应用将在 `http://localhost:5173` 启动。
 
-## API Overview
+就这样,打开浏览器访问前端地址,你的提示词管理平台就运行起来了!
 
-The backend exposes a RESTful API at `http://localhost:8080/api`. Key endpoints include:
+## 实用场景案例
 
-- `GET /api/projects`: List all projects
-- `POST /api/projects`: Create a new project
-- `GET /api/projects/:id/prompts`: Get prompts for a specific project
-- `POST /api/projects/:id/prompts`: Create a new prompt
-- `GET /api/prompts/:id`: Get prompt details
-- `PUT /api/prompts/:id`: Update a prompt (creates a new version or keeps current version)
-- `GET /api/prompts/:id/diff/:target_id`: Compare two prompt versions
-- `POST /api/optimize-prompt`: Call LLM for prompt optimization (supports streaming)
-- `POST /api/test-prompt`: Test prompt with conversation history (supports streaming)
-- `GET /api/projects/:id/sdk/prompt`: SDK integration endpoint to retrieve prompt content
-- `GET /api/settings`: Get system configuration
-- `POST /api/settings`: Update system configuration
-- `POST /api/export`: Export projects in JSON, CSV, or YAML format
-- `POST /api/import`: Import projects from exported data
+### 场景 1: 提示词工程师的知识库
 
+作为一名专业的提示词工程师,你可能积累了上百个精心调试的提示词模板:
+- 为不同行业(医疗、法律、教育等)创建专门项目
+- 用标签标记场景(写作、分析、翻译等)
+- 持续优化迭代,记录每次改进的原因
+- 建立个人提示词知识库,随时复用最佳实践
+
+### 场景 2: AI 应用开发者的版本管理
+
+开发一个 AI 应用需要不断调试提示词:
+- 为每个功能模块创建独立的提示词
+- 使用版本控制追踪每次迭代
+- 在 Playground 中快速测试不同版本
+- 通过 SDK API 集成到生产环境
+- 灰度发布新版本,观察效果后全量上线
+
+### 场景 3: 团队协作的资产沉淀
+
+团队使用 Prompt Manager 可以:
+- 统一管理所有项目的提示词资产
+- 新人快速了解历史提示词的演进
+- 分享和复用团队成员的优秀提示词
+- 建立提示词规范和最佳实践文档
+- 通过导入导出功能实现跨团队协作
+
+### 场景 4: 教育和学习
+
+对于学习提示词工程的同学:
+- 对比不同版本提示词的效果差异
+- 学习优秀提示词的设计思路
+- 通过 AI 优化功能获得改进建议
+- 积累自己的提示词作品集
+
+
+## 开源免费,欢迎贡献
+
+Prompt Manager 采用 MIT 开源协议,你可以:
+- 📦 **免费使用**: 个人和商业项目都可免费使用
+- 🐛 **提交反馈**: 发现问题请提 Issue
+- 🎨 **贡献代码**: 欢迎提交 PR 改进功能
+- 📖 **完善文档**: 帮助完善文档和示例
+- 🚀 **二次开发**: 基于项目进行定制开发
+
+
+## 结语
+
+在 AI 驱动的开发时代,好的工具能让你的效率倍增。Prompt Manager 不仅仅是一个提示词管理工具,更是你 AI 开发工作流中的得力助手。
+
+从个人知识库到团队协作平台,从提示词管理到 AI 应用集成,Prompt Manager 陪伴你的每一步 AI 开发之旅。
+
+**立即开始你的提示词管理之旅:**
+
+- 📦 **GitHub**: [prompt-manager](https://github.com/cjpnice/prompt-manager)
+- ⭐ **Star**: 如果这个项目对你有帮助,请给个 Star 支持一下!
+
+---
+
+*让提示词管理变得简单、专业、高效*
+
+**Prompt Manager** —— 你的 AI 开发加速器 🚀
