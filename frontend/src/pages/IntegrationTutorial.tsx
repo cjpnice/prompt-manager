@@ -40,7 +40,7 @@ export const IntegrationTutorial: React.FC = () => {
 import requests
 
 def get_prompt_content(project_id, prompt_name, version=None, tag=None):
-    base_url = "http://localhost:8080/api"  # 请根据实际部署地址修改
+    base_url = "http://localhost:7788/api"  # 请根据实际部署地址修改
     url = f"{base_url}/projects/{project_id}/sdk/prompt"
     
     params = {
@@ -95,7 +95,7 @@ type PromptResponse struct {
 }
 
 func GetPromptContent(projectID, promptName, version, tag string) (string, error) {
-	baseURL := "http://localhost:8080/api" // 请根据实际部署地址修改
+	baseURL := "http://localhost:7788/api" // 请根据实际部署地址修改
 	endpoint := fmt.Sprintf("%s/projects/%s/sdk/prompt", baseURL, projectID)
 
 	// 构建查询参数
@@ -154,7 +154,7 @@ async function getPromptContent(
   name: string, 
   options?: { version?: string; tag?: string }
 ): Promise<string | null> {
-  const baseUrl = 'http://localhost:8080/api';
+  const baseUrl = 'http://localhost:7788/api';
   const url = new URL(\`\${baseUrl}/projects/\${projectId}/sdk/prompt\`);
   
   url.searchParams.append('name', name);

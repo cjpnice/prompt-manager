@@ -157,7 +157,34 @@ git clone https://github.com/cjpnice/prompt-manager.git
 cd prompt-manager
 ```
 
-#### 2. 启动后端
+#### 2. 方式一：一键构建部署 (推荐)
+
+使用项目提供的打包脚本，自动构建前端并编译后端，生成单文件可执行程序：
+
+```bash
+# 1. 运行打包脚本
+./build.sh
+
+# 2. 运行程序
+# macOS (根据你的架构选择)
+cd build/macos-amd64 && ./prompt-manager
+
+# Windows
+# 进入 build/windows-amd64 目录运行 prompt-manager.exe
+
+# Linux
+# 进入 build/linux-amd64 目录运行 prompt-manager
+```
+
+程序将在 `http://localhost:7788` 启动 
+
+#### 3. 方式二：开发模式启动
+
+如果你需要进行代码开发，可以分别启动前后端。
+
+**注意**：后端依赖前端构建产物，首次启动建议先运行一次 `npm run build` ，并将dist 目录复制到 backend 目录下。
+
+**启动后端**
 
 ```bash
 cd backend
@@ -165,20 +192,16 @@ cd backend
 # 安装依赖
 go mod download
 
-# 创建配置文件(可选,使用默认值)
-cat > .env << EOF
-SERVER_PORT=8080
-DB_TYPE=sqlite
-DB_NAME=prompt_manager.db
-EOF
+# 复制配置文件 (可选)
+cp ../config.yaml.example config.yaml
 
 # 启动服务
 go run main.go
 ```
 
-后端服务将在 `http://localhost:8080` 启动。
+后端服务将在 `http://localhost:7788` 启动。
 
-#### 3. 启动前端
+**启动前端**
 
 ```bash
 cd frontend
@@ -190,9 +213,9 @@ npm install
 npm run dev
 ```
 
-前端应用将在 `http://localhost:5173` 启动。
+前端开发服务将在 `http://localhost:5173` 启动。
 
-就这样,打开浏览器访问前端地址,你的提示词管理平台就运行起来了!
+就这样，打开浏览器访问前端地址，你的提示词管理平台就运行起来了！
 
 ## 实用场景案例
 

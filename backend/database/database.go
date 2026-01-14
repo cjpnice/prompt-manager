@@ -2,11 +2,13 @@ package database
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"prompt-manager/config"
 	"prompt-manager/models"
 
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -17,15 +19,23 @@ func InitDB(cfg *config.Config) error {
 	var err error
 	var dialector gorm.Dialector
 
-	switch cfg.DBType {
+	switch cfg.Database.Type {
 	case "mysql":
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-			cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
+			cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
 		dialector = mysql.Open(dsn)
 	case "sqlite":
-		dialector = sqlite.Open(cfg.DBName + ".db")
+		// 获取可执行文件所在目录
+		execPath, err := os.Executable()
+		dbPath := cfg.Database.Name + ".db"
+		if err == nil {
+			execDir := filepath.Dir(execPath)
+			dbPath = filepath.Join(execDir, cfg.Database.Name+".db")
+		}
+		dsn := fmt.Sprintf("file:%s?_pragma=foreign_keys(1)", dbPath)
+		dialector = sqlite.Open(dsn)
 	default:
-		return fmt.Errorf("unsupported database type: %s", cfg.DBType)
+		return fmt.Errorf("unsupported database type: %s", cfg.Database.Type)
 	}
 
 	DB, err = gorm.Open(dialector, &gorm.Config{

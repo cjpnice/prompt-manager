@@ -9,7 +9,14 @@
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
       "Bash(awk:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(chmod:*)",
+      "Bash(go build:*)",
+      "Bash(go get:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "Bash(go mod vendor:*)"
     ]
   }
 }

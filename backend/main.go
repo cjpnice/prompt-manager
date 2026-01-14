@@ -1,27 +1,29 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"log"
+	"log/slog"
+	"net/http"
 	"prompt-manager/config"
 	"prompt-manager/database"
 	"prompt-manager/handlers"
 	"prompt-manager/middleware"
 	"strconv"
 
-	"github.com/joho/godotenv"
-
 	"github.com/gin-gonic/gin"
 )
 
+//go:embed all:dist
+var frontendFS embed.FS
+
 func main() {
-	// 加载env配置
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-		return
-	}
+
 	// 加载配置
+	slog.Error("LoadConfig")
 	cfg := config.LoadConfig()
+	slog.Error("LoadConfig", "cfg", cfg)
 
 	// 初始化数据库
 	if err := database.InitDB(cfg); err != nil {
@@ -97,9 +99,27 @@ func main() {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
+	// 前端静态文件服务
+	frontendDist, err := fs.Sub(frontendFS, "dist")
+	if err != nil {
+		// 如果前端未构建，返回空文件系统（允许仅API模式运行）
+		frontendDist = emptystorage{}
+		log.Printf("Warning: frontend assets not found, running in API-only mode")
+	}
+	r.NoRoute(func(c *gin.Context) {
+		c.FileFromFS(c.Request.URL.Path, http.FS(frontendDist))
+	})
+
 	// 启动服务器
-	log.Printf("Server starting on port %d...", cfg.ServerPort)
-	if err := r.Run(":" + strconv.Itoa(cfg.ServerPort)); err != nil {
+	log.Printf("Server starting on port %d...", cfg.Server.Port)
+	if err := r.Run(":" + strconv.Itoa(cfg.Server.Port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
+}
+
+// emptystorage 空文件系统，用于前端未构建时
+type emptystorage struct{}
+
+func (emptystorage) Open(name string) (fs.File, error) {
+	return nil, fs.ErrNotExist
 }

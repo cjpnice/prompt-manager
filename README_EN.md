@@ -155,7 +155,35 @@ git clone https://github.com/cjpnice/prompt-manager.git
 cd prompt-manager
 ```
 
-#### 2. Start Backend
+#### 2. Method 1: One-Click Build & Deploy (Recommended)
+
+Use the provided packaging script to automatically build the frontend and compile the backend into a single executable file:
+
+```bash
+# 1. Run build script
+./build.sh
+
+# 2. Run the application
+# macOS (Choose based on your architecture)
+cd build/macos-amd64 && ./prompt-manager
+
+# Windows
+# Go to build/windows-amd64 directory and run prompt-manager.exe
+
+# Linux
+# Go to build/linux-amd64 directory and run prompt-manager
+```
+
+The application will start on `http://localhost:7788`.
+
+#### 3. Method 2: Development Mode
+
+If you need to develop code, you can start the backend and frontend separately.
+
+**Note**: The backend depends on frontend build artifacts. It is recommended to run `npm run build` once or manually create the dist directory in the backend folder before the first startup.
+
+
+**Start Backend**
 
 ```bash
 cd backend
@@ -163,20 +191,16 @@ cd backend
 # Install dependencies
 go mod download
 
-# Create configuration file (optional, uses default values)
-cat > .env << EOF
-SERVER_PORT=8080
-DB_TYPE=sqlite
-DB_NAME=prompt_manager.db
-EOF
+# Copy configuration file (Optional)
+cp ../config.yaml.example config.yaml
 
 # Start service
 go run main.go
 ```
 
-Backend service will start on `http://localhost:8080`.
+Backend service will start on `http://localhost:7788`.
 
-#### 3. Start Frontend
+**Start Frontend**
 
 ```bash
 cd frontend
@@ -188,7 +212,7 @@ npm install
 npm run dev
 ```
 
-Frontend application will start on `http://localhost:5173`.
+Frontend development server will start on `http://localhost:5173`.
 
 That's it! Open your browser and visit the frontend address, your prompt management platform is running!
 

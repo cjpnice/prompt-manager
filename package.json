@@ -1,0 +1,24 @@
+{
+  "name": "prompt-manager",
+  "version": "1.0.0",
+  "description": "Prompt Manager - 一个基于 AI 的提示词管理工具",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && go run main.go",
+    "build": "node build.js",
+    "build:sh": "bash build.sh",
+    "build:bat": "build.bat"
+  },
+  "keywords": [
+    "prompt",
+    "manager",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "cross-spawn": "^7.0.6"
+  }
+}
