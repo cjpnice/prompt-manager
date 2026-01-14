@@ -47,12 +47,10 @@ func LoadConfig() *Config {
 	if configData, err := loadConfigFile(); err == nil {
 		// 配置文件存在，解析配置
 		if err := yaml.Unmarshal(configData, cfg); err != nil {
-			slog.Error("LoadConfig", "Unmarshal", err)
 			fmt.Printf("Warning: failed to parse config file, using defaults: %v\n", err)
 			cfg = defaultConfig()
 		}
 	} else {
-		slog.Error("defaultConfig", "defaultConfig", err)
 		// 配置文件不存在，使用默认配置
 		cfg = defaultConfig()
 	}
