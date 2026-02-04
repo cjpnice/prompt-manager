@@ -42,21 +42,21 @@ class ApiService {
     });
   }
 
-  async optimizePrompt(prompt: string): Promise<{ optimized_prompt: string }> {
+  async optimizePrompt(prompt: string, provider?: string): Promise<{ optimized_prompt: string }> {
     return this.request<{ optimized_prompt: string }>('/optimize-prompt', {
       method: 'POST',
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, provider }),
     });
   }
 
-  async testPrompt(messages: { role: string; content: string }[], options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number }): Promise<{ response: string }> {
+  async testPrompt(messages: { role: string; content: string }[], options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number; provider?: string }): Promise<{ response: string }> {
     return this.request<{ response: string }>('/test-prompt', {
       method: 'POST',
       body: JSON.stringify({ messages, ...options }),
     });
   }
 
-  testPromptStream(messages: { role: string; content: string }[], onData: (text: string) => void, onError: (error: string) => void, onComplete?: () => void, options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number }): () => void {
+  testPromptStream(messages: { role: string; content: string }[], onData: (text: string) => void, onError: (error: string) => void, onComplete?: () => void, options?: { model?: string; temperature?: number; topP?: number; maxTokens?: number; provider?: string }): () => void {
     const controller = new AbortController();
     const signal = controller.signal;
     let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;

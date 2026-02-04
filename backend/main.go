@@ -4,7 +4,6 @@ import (
 	"embed"
 	"io/fs"
 	"log"
-	"log/slog"
 	"net/http"
 	"prompt-manager/config"
 	"prompt-manager/database"
@@ -15,15 +14,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//go:embed all:dist
+//go:embed dist
 var frontendFS embed.FS
 
 func main() {
 
 	// 加载配置
-	slog.Error("LoadConfig")
 	cfg := config.LoadConfig()
-	slog.Error("LoadConfig", "cfg", cfg)
 
 	// 初始化数据库
 	if err := database.InitDB(cfg); err != nil {

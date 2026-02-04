@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"prompt-manager/database"
 	"prompt-manager/models"
@@ -66,8 +67,9 @@ func (h *SettingsHandler) UpdateSettings(c *gin.Context) {
 
 func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 	type OptimizeRequest struct {
-		Prompt string `json:"prompt"`
-		Stream bool   `json:"stream"`
+		Prompt   string `json:"prompt"`
+		Stream   bool   `json:"stream"`
+		Provider string `json:"provider"`
 	}
 	var req OptimizeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,29 +77,49 @@ func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 		return
 	}
 
-	// Get settings
+	provider := services.ProviderType(req.Provider)
+	if provider == "" {
+		provider = services.ProviderAliyun
+	}
+
+	// Get provider-specific settings
+	apiKeyKey := services.GetProviderSettingsKey(provider)
+	apiURLKey := services.GetProviderURLKey(provider)
+	modelKey := services.GetProviderModelKey(provider)
+
 	var apiKeySetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_api_key").First(&apiKeySetting)
+	database.DB.Where("`key` = ?", apiKeyKey).First(&apiKeySetting)
 
 	var apiURLSetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_api_url").First(&apiURLSetting)
+	database.DB.Where("`key` = ?", apiURLKey).First(&apiURLSetting)
 
 	var modelSetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_model").First(&modelSetting)
-
-	var systemPromptSetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_system_prompt").First(&systemPromptSetting)
+	database.DB.Where("`key` = ?", modelKey).First(&modelSetting)
 
 	if apiKeySetting.Value == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Aliyun API Key not configured"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s API Key not configured", provider)})
 		return
 	}
 
-	systemPrompt := systemPromptSetting.Value
-
 	model := modelSetting.Value
 	if model == "" {
-		model = "qwen-turbo"
+		providerObj, err := services.GetProvider(provider)
+		if err == nil {
+			model = providerObj.GetDefaultModel()
+		} else {
+			model = "qwen-turbo"
+		}
+	}
+
+	options := services.ChatOptions{
+		Model:       model,
+		Temperature: nil,
+		TopP:        nil,
+		MaxTokens:   0,
+	}
+
+	messages := []services.OpenAIMessage{
+		{Role: "user", Content: req.Prompt},
 	}
 
 	if req.Stream {
@@ -106,8 +128,7 @@ func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 		c.Header("Connection", "keep-alive")
 		c.Header("Transfer-Encoding", "chunked")
 
-		err := services.CallAliyunStream(apiKeySetting.Value, apiURLSetting.Value, model, systemPrompt, req.Prompt, func(text string) error {
-			// Wrap text in JSON to preserve newlines and special characters when sending via SSE
+		err := services.CallModelStream(provider, apiKeySetting.Value, apiURLSetting.Value, options, messages, func(text string) error {
 			data := map[string]string{"text": text}
 			jsonData, _ := json.Marshal(data)
 			c.SSEvent("message", string(jsonData))
@@ -116,14 +137,12 @@ func (h *SettingsHandler) OptimizePrompt(c *gin.Context) {
 		})
 
 		if err != nil {
-			// If error happens mid-stream, we can't really change the status code now,
-			// but we can send an error event.
 			c.SSEvent("error", err.Error())
 		}
 		return
 	}
 
-	optimized, err := services.CallAliyun(apiKeySetting.Value, apiURLSetting.Value, model, systemPrompt, req.Prompt)
+	optimized, err := services.CallModel(provider, apiKeySetting.Value, apiURLSetting.Value, options, messages)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

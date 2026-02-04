@@ -106,44 +106,6 @@ const (
 	`
 )
 
-type OpenAIMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-type OpenAIRequest struct {
-	Model       string          `json:"model"`
-	Messages    []OpenAIMessage `json:"messages"`
-	Stream      bool            `json:"stream"`
-	Temperature *float64        `json:"temperature,omitempty"`
-	TopP        *float64        `json:"top_p,omitempty"`
-	MaxTokens   int             `json:"max_tokens,omitempty"`
-}
-
-type ChatOptions struct {
-	Model       string
-	Temperature *float64
-	TopP        *float64
-	MaxTokens   int
-}
-
-type OpenAIResponse struct {
-	Choices []struct {
-		Message struct {
-			Content string `json:"content"`
-		} `json:"message"`
-	} `json:"choices"`
-}
-
-type OpenAIStreamResponse struct {
-	Choices []struct {
-		Delta struct {
-			Content string `json:"content"`
-		} `json:"delta"`
-		FinishReason string `json:"finish_reason"`
-	} `json:"choices"`
-}
-
 func normalizeAPIURL(url string) string {
 	url = strings.TrimSpace(url)
 	if url == "" {

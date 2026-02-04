@@ -598,6 +598,7 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 	type TestPromptRequest struct {
 		Messages    []services.OpenAIMessage `json:"messages"`
 		Stream      bool                     `json:"stream"`
+		Provider    string                   `json:"provider"`
 		Model       string                   `json:"model"`
 		Temperature *float64                 `json:"temperature"`
 		TopP        *float64                 `json:"top_p"`
@@ -609,24 +610,40 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		return
 	}
 
-	// Get settings
+	provider := services.ProviderType(req.Provider)
+	if provider == "" {
+		provider = services.ProviderAliyun
+	}
+
+	apiKeyKey := services.GetProviderSettingsKey(provider)
+	apiURLKey := services.GetProviderURLKey(provider)
+	modelKey := services.GetProviderModelKey(provider)
+
 	var apiKeySetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_api_key").First(&apiKeySetting)
+	database.DB.Where("`key` = ?", apiKeyKey).First(&apiKeySetting)
 
 	var apiURLSetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_api_url").First(&apiURLSetting)
+	database.DB.Where("`key` = ?", apiURLKey).First(&apiURLSetting)
 
 	var modelSetting models.Setting
-	database.DB.Where("`key` = ?", "aliyun_model").First(&modelSetting)
+	database.DB.Where("`key` = ?", modelKey).First(&modelSetting)
 
 	if apiKeySetting.Value == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Aliyun API Key not configured"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("%s API Key not configured", provider)})
 		return
 	}
 
 	model := req.Model
 	if model == "" {
 		model = modelSetting.Value
+		if model == "" {
+			providerObj, err := services.GetProvider(provider)
+			if err == nil {
+				model = providerObj.GetDefaultModel()
+			} else {
+				model = "qwen-turbo"
+			}
+		}
 	}
 
 	options := services.ChatOptions{
@@ -642,7 +659,7 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		c.Header("Connection", "keep-alive")
 		c.Header("Transfer-Encoding", "chunked")
 
-		err := services.CallAliyunChatStream(apiKeySetting.Value, apiURLSetting.Value, options, req.Messages, func(text string) error {
+		err := services.CallModelStream(provider, apiKeySetting.Value, apiURLSetting.Value, options, req.Messages, func(text string) error {
 			data := map[string]string{"text": text}
 			jsonData, _ := json.Marshal(data)
 			c.SSEvent("message", string(jsonData))
@@ -656,7 +673,7 @@ func (h *PromptHandler) TestPrompt(c *gin.Context) {
 		return
 	}
 
-	response, err := services.CallAliyunChat(apiKeySetting.Value, apiURLSetting.Value, options, req.Messages)
+	response, err := services.CallModel(provider, apiKeySetting.Value, apiURLSetting.Value, options, req.Messages)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

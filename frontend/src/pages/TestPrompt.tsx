@@ -16,7 +16,56 @@ interface Message {
   content: string;
 }
 
+type ProviderType = 'aliyun' | 'deepseek' | 'doubao' | 'glm' | 'kimi';
+
+interface ProviderConfig {
+  name: string;
+  displayName: string;
+  api_url: string;
+  model: string;
+  suggestedModels: string[];
+}
+
+const PROVIDERS: Record<ProviderType, ProviderConfig> = {
+  aliyun: {
+    name: 'aliyun',
+    displayName: '阿里云',
+    api_url: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    model: 'qwen-turbo',
+    suggestedModels: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'],
+  },
+  deepseek: {
+    name: 'deepseek',
+    displayName: 'DeepSeek',
+    api_url: 'https://api.deepseek.com/v1/chat/completions',
+    model: 'deepseek-chat',
+    suggestedModels: ['deepseek-chat', 'deepseek-coder'],
+  },
+  doubao: {
+    name: 'doubao',
+    displayName: '豆包',
+    api_url: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+    model: 'doubao-pro-4k',
+    suggestedModels: ['doubao-pro-4k', 'doubao-pro-32k', 'doubao-lite-4k'],
+  },
+  glm: {
+    name: 'glm',
+    displayName: 'GLM (智谱)',
+    api_url: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+    model: 'glm-4',
+    suggestedModels: ['glm-4', 'glm-4-flash', 'glm-3-turbo'],
+  },
+  kimi: {
+    name: 'kimi',
+    displayName: 'Kimi (月之暗面)',
+    api_url: 'https://api.moonshot.cn/v1/chat/completions',
+    model: 'moonshot-v1-8k',
+    suggestedModels: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+  },
+};
+
 interface ModelSettings {
+  provider: string;
   model: string;
   temperature: number;
   topP: number;
@@ -68,6 +117,7 @@ export const TestPrompt: React.FC = () => {
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [showModelSettings, setShowModelSettings] = useState(false);
   const [modelSettings, setModelSettings] = useState<ModelSettings>({
+    provider: 'aliyun',
     model: 'qwen-turbo',
     temperature: 0.7,
     topP: 0.8,
@@ -280,7 +330,8 @@ export const TestPrompt: React.FC = () => {
           },
           () => {
             setCompareLoading(prev => ({ ...prev, [versionId]: false }));
-          }
+          },
+          modelSettings
         );
         
         // 存储abort函数以便后续取消
@@ -532,6 +583,25 @@ export const TestPrompt: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                             <div>
+                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">供应商 (Provider)</label>
+                                <select
+                                    value={modelSettings.provider}
+                                    onChange={(e) => {
+                                        const newProvider = e.target.value as ProviderType;
+                                        setModelSettings({
+                                            ...modelSettings,
+                                            provider: newProvider,
+                                            model: PROVIDERS[newProvider].model
+                                        });
+                                    }}
+                                    className="w-full text-sm border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500"
+                                >
+                                    {Object.entries(PROVIDERS).map(([key, config]) => (
+                                        <option key={key} value={key}>{config.displayName}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">模型 (Model)</label>
                                 <input
                                     type="text"
@@ -541,7 +611,7 @@ export const TestPrompt: React.FC = () => {
                                     placeholder="输入模型名称..."
                                 />
                                 <div className="flex flex-wrap gap-2">
-                                    {['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'].map(m => (
+                                    {PROVIDERS[modelSettings.provider as ProviderType]?.suggestedModels.map(m => (
                                         <button
                                             key={m}
                                             onClick={() => setModelSettings({...modelSettings, model: m})}
