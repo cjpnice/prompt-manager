@@ -4,12 +4,12 @@ import (
 	"embed"
 	"io/fs"
 	"log"
-	"net/http"
 	"prompt-manager/config"
 	"prompt-manager/database"
 	"prompt-manager/handlers"
 	"prompt-manager/middleware"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -99,12 +99,32 @@ func main() {
 	// 前端静态文件服务
 	frontendDist, err := fs.Sub(frontendFS, "dist")
 	if err != nil {
-		// 如果前端未构建，返回空文件系统（允许仅API模式运行）
 		frontendDist = emptystorage{}
 		log.Printf("Warning: frontend assets not found, running in API-only mode")
 	}
+
 	r.NoRoute(func(c *gin.Context) {
-		c.FileFromFS(c.Request.URL.Path, http.FS(frontendDist))
+		path := c.Request.URL.Path
+
+		if path == "/" || path == "" {
+			c.Data(200, "text/html; charset=utf-8", getFileContent(frontendDist, "index.html"))
+			return
+		}
+
+		lastDot := strings.LastIndex(path, ".")
+		if lastDot > 0 && len(path) > lastDot {
+			ext := path[lastDot:]
+			switch ext {
+			case ".js", ".css", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".woff", ".woff2", ".ttf", ".json", ".map":
+				filePath := path[1:]
+				if content, err := readFileContent(frontendDist, filePath); err == nil {
+					c.Data(200, getContentType(ext), content)
+					return
+				}
+			}
+		}
+
+		c.Data(200, "text/html; charset=utf-8", getFileContent(frontendDist, "index.html"))
 	})
 
 	// 启动服务器
@@ -119,4 +139,54 @@ type emptystorage struct{}
 
 func (emptystorage) Open(name string) (fs.File, error) {
 	return nil, fs.ErrNotExist
+}
+
+func getFileContent(fsys fs.FS, filename string) []byte {
+	file, err := fsys.Open(filename)
+	if err != nil {
+		log.Printf("Error opening file %s: %v", filename, err)
+		return []byte("<html><body><h1>File not found</h1></body></html>")
+	}
+	defer file.Close()
+
+	content, err := fs.ReadFile(fsys, filename)
+	if err != nil {
+		log.Printf("Error reading file %s: %v", filename, err)
+		return []byte("<html><body><h1>Error reading file</h1></body></html>")
+	}
+
+	return content
+}
+
+func readFileContent(fsys fs.FS, filename string) ([]byte, error) {
+	return fs.ReadFile(fsys, filename)
+}
+
+func getContentType(ext string) string {
+	switch ext {
+	case ".js":
+		return "application/javascript"
+	case ".css":
+		return "text/css"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".svg":
+		return "image/svg+xml"
+	case ".ico":
+		return "image/x-icon"
+	case ".woff":
+		return "font/woff"
+	case ".woff2":
+		return "font/woff2"
+	case ".ttf":
+		return "font/ttf"
+	case ".json":
+		return "application/json"
+	case ".map":
+		return "application/json"
+	default:
+		return "application/octet-stream"
+	}
 }
